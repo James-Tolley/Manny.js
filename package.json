@@ -1,18 +1,24 @@
 {
-	"name": "skynet",
-	"main": "server.js",
-	"license": "unlicensed",
-	"description": "Curious Pastimes Plot Management Application",
-	"authors": [
-		"James Tolley <james@jamestolley.net> (www.jamestolley.net)"
-	],
-	"dependencies": {
-		"express": "~4.0.0",
-		"config": "^1.15.0",
-		"body-parser": "~1.0.1",
-		"bluebird": "^2.9.34",
-		"passport": "^0.2.2",
-		"passport-local": "^1.0.0",
-		"passport-http-bearer": "^1.0.1"
-	}
+  "name": "skynet",
+  "main": "server.js",
+  "license": "unlicensed",
+  "description": "Curious Pastimes Plot Management Application",
+  "authors": [
+    "James Tolley <james@jamestolley.net> (www.jamestolley.net)"
+  ],
+  "dependencies": {
+    "bluebird": "^2.9.34",
+    "body-parser": "~1.0.1",
+    "config": "^1.15.0",
+    "debug": "^2.2.0",
+    "express": "~4.0.0",
+    "jsonwebtoken": "^5.0.4",
+    "passport": "^0.2.2",
+    "passport-jwt": "^1.1.0",
+    "passport-local": "^1.0.0"
+  },
+  "devDependencies": {
+    "should": "^7.0.4",
+    "supertest": "^1.0.1"
+  }
 }

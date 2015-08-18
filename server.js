@@ -5,18 +5,18 @@ var
 	passport = require('passport');
 
 // Controllers
-	auth = require('./src/controllers/authentication'),
-	oauth2 = require('./src/controllers/oauth2');
+	auth = require('./src/controllers/authentication');
+	//oauth2 = require('./src/controllers/oauth2');
 
 /* Api Router configuration */
 var router = express.Router();
 
-router.post('/login', auth.login);
-router.post('/oauth/token', oauth2.token);
+router.post('/token', auth.token);
+//router.post('/oauth/token', oauth2.token);
 
-router.get('/', passport.authenticate('bearer', { session: false}),
+router.get('/', passport.authenticate('jwt', { session: false}),
 	function(req, res) {
-		res.json({ userId: req.user.id, name: req.user.name, scope: req.authInfo.scope });
+		res.json({ userId: req.user.id, name: req.user.name, email: req.user.email, scope: req.authInfo.scope });
  	}
 );
 

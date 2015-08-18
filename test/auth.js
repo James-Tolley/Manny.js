@@ -19,39 +19,44 @@ describe('Auth', function() {
 
 	it("Should exchange valid login details for a bearer token", function(done) {
 		request(url)
-		.post('/api/login')
+		.post('/api/token')
 		.auth('user@example.com', 'password')
 		.end(function(err, res) {
 			if (err) {
 				throw err;
 			}
 			res.should.have.property('status', 200);
+			res.body.should.have.property('access_token');
+
 			done();
 		})
+	});
+
+	it("Should allow access via an access token", function(done) {
+		var token;
+
+		request(url)
+		.post('/api/token')
+		.auth('user@example.com', 'password')
+		.expect(200)
+		.end(function(err, res) {
+			token = res.body.access_token;
+
+			request(url)
+			.get('/api')
+			.set('Authorization', 'JWT ' + token)
+			.expect(200)
+			.end(function(err, res) {
+				if (err) {
+					throw err;
+				}
+
+				res.should.have.property('status', 200);
+				res.body.should.have.property('userId');
+
+				done();
+			});			
+		})
+
 	});
 });
-
-describe('Oauth2', function() {
-
-	it('Should exchange client id and login details for a bearer token', function(done) {
-		request(url)
-		.post('/api/oauth/token')
-		.send({
-			grant_type: "password",
-			client_id: "webapp",
-			client_secret: "not-a-secret",
-			username: "user@example.com",
-			password: "password"
-		})
-		.end(function(err, res) {
-			if (err) {
-				throw err;
-			}
-			res.should.have.property('status', 200);
-			done();
-		})
-	});
-
-	it('Should exchange a refresh token for a new bearer token')
-
-})

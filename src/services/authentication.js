@@ -2,82 +2,60 @@ var config = require('config'),
 	passport = require('passport'),
 	Promise = require('bluebird'),
 	BasicStrategy = require('passport-http').BasicStrategy,
-	BearerStrategy = require('passport-http-bearer').Strategy,
-	AccessToken = require('../models/accessToken'),
-	RefreshToken = require('../models/refreshToken');
+	JwtStrategy = require('passport-jwt').Strategy,
+	jwt = require('jsonwebtoken');
 
 service = {
 	login : function(username, password) {
-		return {
-
-			user: {
-				id: 1,
-				name: "Test user",
-				email: "test@example.com",
-			}
-		}
-	},
-
-	authenticateAccessToken: function(token) {
-		if (!token) { return false; }
-
-		var tokenLife = config.get('security.tokenLife');
-
-		if ( Math.round( (Date.now() - token.created) /1000 ) > tokenLife ) {
-			return false;
-		}
-
-		return true;
-	},
-
-	issueBearerToken: function(user) {
-		var token = {
-			accessToken: new AccessToken({
-				userId: user.id
-			}),
-			refreshToken: new RefreshToken({
-				userId: user.id
-			}),
-			expires_in: config.get('security.tokenLife')
-		}
-
-		return  token;
-	},
-
-	validateRefreshToken: function(token) {
-		return {
+		var user = {
 			id: 1,
 			name: "Test user",
 			email: "test@example.com",
-		}
+		};
+
+		return user;
+	},
+
+	tokenLogin : function(token) {
+		var user = {
+			id: 1,
+			name: "Test user",
+			email: "test@example.com",
+		
+		};
+		return user;
+	},
+
+	issueToken: function(user) {
+		var payload = {
+			user_id : user.id,
+			user_name : user.name,
+			email: user.email
+		};
+
+		var options = {
+			expiresInSeconds: config.get('security.jwt.expiresInSeconds'),
+			issuer: config.get('security.jwt.issuer')
+		};
+
+		var token = jwt.sign(payload, config.get('security.jwt.secretOrKey'), options);
+		return token;
 	}
 };
-
 
 /* Authentication setup */
 passport.use('basic', new BasicStrategy(function(username, password, done) {
 	var user = service.login(username, password);
 	return done(null, user);
-	// Promise.resolve(service.login(username, password))
-	// .then(function(result) {
-	// 	if (result.err) {
-	// 		return done(null, false, result.err);
-	// 	}
-	// 	return done(null, result.user);
-	// })
-	// .catch(function(err) {
-	// 	return done(err);	
-	// })
 }));
 
-passport.use(new BearerStrategy(function(accessToken, done) {
-
-	// if (!service.authenticateAccessToken(token)) {
-	// 	return done(null, false);
-	// }
-
-	var user = service.login('test', 'test')
-	return done(null, user, {scope: '*'});
+var jwtOptions = config.get('security.jwt');
+passport.use('jwt', new JwtStrategy(jwtOptions, function(jwt, done) {
+	Promise.resolve(service.tokenLogin(jwt)).then(function(user) {
+		return done(null, user || false);
+	}).catch(function(err) {
+		return done(err, false);
+	})
 }));
 
 module.exports = service;

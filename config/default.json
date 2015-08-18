@@ -6,6 +6,10 @@
 		"type": "basic"
 	},
 	"security": {
-		"tokenLife": 3600
+		"jwt": {
+			"secretOrKey": "my-secret-key",
+			"issuer": "skynet.jamestolley.net",
+			"expiresInSeconds": 3600
+		}
 	}
 }
