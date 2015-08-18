@@ -8,4 +8,5 @@ var AccessToken = function(data) {
 	this.created = data.created || Date.now;
 
 }
-exports = AccessToken;
+
+module.exports = AccessToken;

@@ -1,11 +1,22 @@
-var authService = require('/src/services/authentication');
+var authService = require('../services/authentication'),
+	passport = require('passport');
+
 var controller = {
 
 	login: function(req, res) {
-		var username = req.params.username,
-			password = req.params.password;
+		res.json({message: 'hi'});
+		// var username = req.params.username,
+		// 	password = req.params.password;
 
-
+		// authService.login(username, password)
+		// .then(function() {
+		// 	res.json({message: 'Logged in!'});
+		// })
 	}
 
 }
+
+exports.login = [
+	passport.authenticate('basic', {session: false}),
+	controller.login
+]

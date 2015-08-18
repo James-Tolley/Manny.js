@@ -1,22 +1,18 @@
-/* App setup */
 var 
 	express = require('express'),
 	bodyParser = require('body-parser'),
 	config = require('config'),
-	passport = require('passport'),
-	authentication = require('./src/services/authentication');
+	passport = require('passport');
 
-var app = express();
-
-app.use(bodyParser.urlencoded({extended: true}));
-app.use(bodyParser.json());	
-
-var oauth2 = require('./src/services/oauth2');
-app.use(passport.initialize());
-app.post('/oauth/token', oauth2.token);
+// Controllers
+	auth = require('./src/controllers/authentication'),
+	oauth2 = require('./src/controllers/oauth2');
 
 /* Api Router configuration */
 var router = express.Router();
+
+router.post('/login', auth.login);
+router.post('/oauth/token', oauth2.token);
 
 router.get('/', passport.authenticate('bearer', { session: false}),
 	function(req, res) {
@@ -24,6 +20,11 @@ router.get('/', passport.authenticate('bearer', { session: false}),
  	}
 );
 
+
+var app = express();
+app.use(bodyParser.urlencoded({extended: true}));
+app.use(bodyParser.json());	
+app.use(passport.initialize());
 app.use('/api', router);
 
 /* Run app */

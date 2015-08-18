@@ -38,4 +38,4 @@ function encryptPassword(password, salt) {
 	return crypto.pbkdf2Sync(password, salt, 10000, 512);
 }
 
-exports = User;
+module.exports = User;

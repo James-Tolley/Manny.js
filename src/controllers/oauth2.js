@@ -1,22 +1,25 @@
+/*
+	OAuth2 Endpoint. Login from external systems and refresh token support.
+*/
+
 var oauth2orize = require('oauth2orize'),
 	passport = require('passport'),
-	authenticationService = require('./authentication'),
+	ClientPasswordStrategy = require('passport-oauth2-client-password').Strategy,	
+	authService = require('../services/authentication'),
 	Promise = require('bluebird');
 
 var server = oauth2orize.createServer();
 
 // Exchange username & password for access token
 server.exchange(oauth2orize.exchange.password(function (client, username, password, scope, done) {
-	authenticationService.login(username, password).then(function(user) {
+	Promise.resolve(authService.login(username, password)).then(function(user) {
 		if (!user) {
 			return done(null, false) // Username or password incorrect
 		}
-
-		Promise.resolve(issuerBearerToken(user))
-		.then(function(token) {
+		
+		Promise.resolve(authService.issueBearerToken(user)).then(function(token) {
 			return done(null, token.accessToken, token.refreshToken, token.expiresIn);
 		});
-
 
 	}).catch(function(err) {
 		return done(err);
@@ -25,13 +28,13 @@ server.exchange(oauth2orize.exchange.password(function (client, username, passwo
 
 // Exchange refresh token for access token
 server.exchange(oauth2orize.exchange.refreshToken(function (client, refreshToken, scope, done) {
-	Promise.resolve(validateRefreshToken(refreshToken))
+	Promise.resolve(authService.validateRefreshToken(refreshToken))
 	.then(function(user) {
 		if (!user) {
 			return done(null, false); // Refresh token expired or invalid
 		}
 
-		Promise.resolve(issuerBearerToken(user))
+		Promise.resolve(authService.issueBearerToken(user))
 		.then(function(token) {
 			var info = { scope: '*' };
 			return done(null, token.accessToken, token.refreshToken, token.expiresIn);
@@ -41,28 +44,13 @@ server.exchange(oauth2orize.exchange.refreshToken(function (client, refreshToken
 	})
 }));
 
-function issueBearerToken(user) {
-	var token = {
-		accessToken: new AccessToken({
-			userId: user.id
-		}),
-		refreshToken: new RefreshToken({
-			userId: user.id
-		}),
-		expires_in: config.get('security.tokenLife')
-	}
-}
-
-function validateRefreshToken (token) {
-	return {
-		id: 1,
-		name: "Test user",
-		email: "test@example.com",
-	}
-}
+passport.use('clientPassword', new ClientPasswordStrategy(function(clientId, clientSecret, done) {
+	var user = authService.login('test', 'test');
+	return done(null, user);
+}))
 
 exports.token = [
-	passport.authenticate(['basic', 'clientPassword'], { session: false }),
+	//passport.authenticate(['clientPassword'], { session: false }),
 	server.token(),
 	server.errorHandler()
 ];

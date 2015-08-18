@@ -8,4 +8,5 @@ var RefreshToken = function(data) {
 	this.created = data.created || Date.now;
 
 }
-exports = RefreshToken;
+
+module.exports = RefreshToken;

@@ -3,8 +3,8 @@ var config = require('config'),
 
 var factory = {};
 
-factory.prototype.getRepository = function() {
-	
+factory.prototype.getRepository = function(obj) {
+
 }
 
-exports = factory;
+module.exports = factory;

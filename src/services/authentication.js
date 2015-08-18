@@ -1,12 +1,12 @@
 var config = require('config'),
 	passport = require('passport'),
+	Promise = require('bluebird'),
 	BasicStrategy = require('passport-http').BasicStrategy,
-	ClientPasswordStrategy = require('passport-oauth2-client-password').Strategy,
 	BearerStrategy = require('passport-http-bearer').Strategy,
 	AccessToken = require('../models/accessToken'),
 	RefreshToken = require('../models/refreshToken');
 
-var service = {
+service = {
 	login : function(username, password) {
 		return {
 
@@ -40,6 +40,8 @@ var service = {
 			}),
 			expires_in: config.get('security.tokenLife')
 		}
+
+		return  token;
 	},
 
 	validateRefreshToken: function(token) {
@@ -68,11 +70,6 @@ passport.use('basic', new BasicStrategy(function(username, password, done) {
 	// })
 }));
 
-passport.use('clientPassword', new ClientPasswordStrategy(function(clientId, clientSecret, done) {
-	var user = service.login('test', 'test')
-	return done(null, user);
-}))
-
 passport.use(new BearerStrategy(function(accessToken, done) {
 
 	// if (!service.authenticateAccessToken(token)) {
@@ -83,5 +80,4 @@ passport.use(new BearerStrategy(function(accessToken, done) {
 	return done(null, user, {scope: '*'});
 }));
 
-
-exports = service;
+module.exports = service;
