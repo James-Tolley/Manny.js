@@ -7,27 +7,49 @@ Application provides login via username and password which it exchanges for a Js
 ### How do I get set up? ###
 
 * Summary of set up
-
 ```
-git clone https://JamesTolley@bitbucket.org/JamesTolley/skynet.git
-npm install
-node server.js
+> git clone https://JamesTolley@bitbucket.org/JamesTolley/skynet.git
+> npm install
+> node server.js
 ```
-
 
 * Configuration
+
+Configuration is in `/config/default.json`
+```
+{
+        // application server configuration
+	"server": {
+		"port": 1337 // http port app should listen on
+	},
+	"orm": {
+		"waterline": {
+			"adapters": {
+				"memory": "sails-memory"
+			},
+			"connections": {
+				"default": {
+					"adapter": "memory"
+				}
+			}
+		}
+	},
+	"security": {
+		"jwt": {
+			"secretOrKey": "my-secret-key",
+			"issuer": "skynet.jamestolley.net",
+			"expiresInSeconds": 3600
+		}
+	}
+}
+```
+
 * Dependencies
 * Database configuration
 * How to run tests
-* Deployment instructions
 
-### Contribution guidelines ###
+Tests are in mocha. Just run
 
-* Writing tests
-* Code review
-* Other guidelines
-
-### Who do I talk to? ###
-
-* Repo owner or admin
-* Other community or team contact
+```
+> mocha
+```
