@@ -81,7 +81,7 @@ Skynet depends on the following packages:
 
 ## Testing ##
 
-Tests are in mocha. Just run
+Integration tests are written in mocha. Start the application, then run:
 
 ```
 > mocha
