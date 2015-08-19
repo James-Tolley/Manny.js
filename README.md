@@ -13,6 +13,14 @@ Application provides login via username and password which it exchanges for a Js
 > node server.js
 ```
 
+* Directory Structure
+
+ - server.js - Main application file
+ - /config
+    - default.js - Default configuration
+ - /src
+  
+
 * Configuration
 
 Configuration is in `/config/default.json`
