@@ -2,8 +2,17 @@
 	"server": {
 		"port": 1337
 	},
-	"database": {
-		"type": "basic"
+	"orm": {
+		"waterline": {
+			"adapters": {
+				"memory": "sails-memory"
+			},
+			"connections": {
+				"default": {
+					"adapter": "memory"
+				}
+			}
+		}
 	},
 	"security": {
 		"jwt": {

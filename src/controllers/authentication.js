@@ -17,15 +17,6 @@ var controller = {
 				access_token: token
 			});	
 		})	
-
-
-		// var username = req.params.username,
-		// 	password = req.params.password;
-
-		// authService.login(username, password)
-		// .then(function() {
-		// 	res.json({message: 'Logged in!'});
-		// })
 	}
 
 }

@@ -19,7 +19,7 @@ describe('Auth', function() {
 
 	it("Should exchange valid login details for a bearer token", function(done) {
 		request(url)
-		.post('/api/token')
+		.post('/token')
 		.auth('user@example.com', 'password')
 		.end(function(err, res) {
 			if (err) {
@@ -36,7 +36,7 @@ describe('Auth', function() {
 		var token;
 
 		request(url)
-		.post('/api/token')
+		.post('/token')
 		.auth('user@example.com', 'password')
 		.expect(200)
 		.end(function(err, res) {

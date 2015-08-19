@@ -5,17 +5,18 @@ var
 	passport = require('passport');
 
 // Controllers
-	auth = require('./src/controllers/authentication');
-	//oauth2 = require('./src/controllers/oauth2');
+var auth = require('./src/controllers/authentication');
+
 
 /* Api Router configuration */
 var router = express.Router();
 
-router.post('/token', auth.token);
-//router.post('/oauth/token', oauth2.token);
+// Require jwt token for all api routes
+router.all('/*', passport.authenticate('jwt', { session: false}), function (req, res, next) {
+	next();
+})
 
-router.get('/', passport.authenticate('jwt', { session: false}),
-	function(req, res) {
+router.get('/', function(req, res) {
 		res.json({ userId: req.user.id, name: req.user.name, email: req.user.email, scope: req.authInfo.scope });
  	}
 );
@@ -25,9 +26,24 @@ var app = express();
 app.use(bodyParser.urlencoded({extended: true}));
 app.use(bodyParser.json());	
 app.use(passport.initialize());
+
+app.post('/token', auth.token);
 app.use('/api', router);
 
 /* Run app */
-var port = config.get('server.port');
-app.listen(port);
-console.log('Listening on port ' + port);
+
+var orm = require('./src/collections/orm');
+
+orm.initialize().then(function(models) {
+	app.models = models.collections;
+	app.connections = models.connections;
+
+	var port = config.get('server.port');
+	app.listen(port);
+	console.log('Listening on port ' + port);
+}).catch(function(e) {
+	throw e;
+});
+
+
+
