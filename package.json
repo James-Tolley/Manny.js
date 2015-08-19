@@ -14,8 +14,8 @@
     "express": "~4.0.0",
     "jsonwebtoken": "^5.0.4",
     "passport": "^0.2.2",
+    "passport-http": "^0.3.0",
     "passport-jwt": "^1.1.0",
-    "passport-local": "^1.0.0",
     "sails-memory": "^0.10.5",
     "waterline": "^0.10.26"
   },
