@@ -18,17 +18,22 @@ Application provides login via username and password which it exchanges for a Js
 Configuration is in `/config/default.json`
 ```
 {
-        *application server configuration*
+        // application server configuration*
 	"server": {
 		"port": 1337 // http port app should listen on
 	},
+
+        // ORM configuration
 	"orm": {
+                // Applications uses waterline as it's ORM
 		"waterline": {
 			"adapters": {
-				"memory": "sails-memory"
+                                // Adapter name and name of adapter module. This will be resolved properly on startup
+				"memory": "sails-memory" 
 			},
 			"connections": {
 				"default": {
+                                        // Name of adapter to use for default connection
 					"adapter": "memory"
 				}
 			}
