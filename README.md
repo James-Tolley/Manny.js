@@ -18,7 +18,7 @@ Application provides login via username and password which it exchanges for a Js
 Configuration is in `/config/default.json`
 ```
 {
-        // application server configuration
+        *application server configuration*
 	"server": {
 		"port": 1337 // http port app should listen on
 	},
