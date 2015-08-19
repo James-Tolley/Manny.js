@@ -4,24 +4,29 @@ Sample application for possible blossoming into the eventual Curious Pastimes pl
 
 Application provides login via username and password which it exchanges for a Json Web Token (jwt). The Api functions all require a valid JWT for access.
 
-### How do I get set up? ###
+## Install ##
 
-* Summary of set up
 ```
 > git clone https://JamesTolley@bitbucket.org/JamesTolley/skynet.git
 > npm install
 > node server.js
 ```
 
-* Directory Structure
+## Directory Structure ##
 
  - server.js - Main application file
+ - /node_modules - Dependencies
  - /config
     - default.js - Default configuration
  - /src
+    - /collections - ORM Collections
+        - orm.js   - ORM initialization
+    - /controllers - Api controllers.
+    - /services    - Business logic
+ - /test - Mocha tests
   
 
-* Configuration
+## Configuration ##
 
 Configuration is in `/config/default.json`
 ```
@@ -58,7 +63,7 @@ Configuration is in `/config/default.json`
 }
 ```
 
-* Dependencies
+## Dependencies ##
 
 All dependencies are in package.json and can be installed with `npm install`
 
@@ -74,7 +79,7 @@ Skynet depends on the following packages:
  - [waterline](https://github.com/balderdashy/waterline)
  - [sails-memory](https://github.com/balderdashy/sails-memory)
 
-* How to run tests
+## Testing ##
 
 Tests are in mocha. Just run
 
