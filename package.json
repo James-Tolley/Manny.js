@@ -2,16 +2,22 @@
   "name": "skynet",
   "main": "server.js",
   "license": "unlicensed",
+  "readme": "README.md",
   "description": "Curious Pastimes Plot Management Application",
   "authors": [
     "James Tolley <james@jamestolley.net> (www.jamestolley.net)"
   ],
+  "repository": {
+    "type": "git",
+    "url": "https://bitbucket.org/JamesTolley/skynet.git"
+  },
   "dependencies": {
     "bluebird": "^2.9.34",
     "body-parser": "~1.0.1",
     "config": "^1.15.0",
     "debug": "^2.2.0",
     "express": "~4.0.0",
+    "hal": "^0.1.0",
     "jsonwebtoken": "^5.0.4",
     "passport": "^0.2.2",
     "passport-http": "^0.3.0",

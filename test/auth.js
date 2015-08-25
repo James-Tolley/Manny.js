@@ -10,7 +10,7 @@ describe('Auth', function() {
 	it("Should return unauthorized if we're not logged in", function(done) {
 
 		request(url)
-		.get('/api')
+		.get('/api/me')
 		.end(function(err, res) {
 			res.should.have.property('status', 401);
 			done();
@@ -19,7 +19,7 @@ describe('Auth', function() {
 
 	it("Should exchange valid login details for a bearer token", function(done) {
 		request(url)
-		.post('/token')
+		.post('/api/token')
 		.auth('user@example.com', 'password')
 		.end(function(err, res) {
 			if (err) {
@@ -36,14 +36,14 @@ describe('Auth', function() {
 		var token;
 
 		request(url)
-		.post('/token')
+		.post('/api/token')
 		.auth('user@example.com', 'password')
 		.expect(200)
 		.end(function(err, res) {
 			token = res.body.access_token;
 
 			request(url)
-			.get('/api')
+			.get('/api/me')
 			.set('Authorization', 'JWT ' + token)
 			.expect(200)
 			.end(function(err, res) {
@@ -52,7 +52,6 @@ describe('Auth', function() {
 				}
 
 				res.should.have.property('status', 200);
-				res.body.should.have.property('userId');
 
 				done();
 			});			
