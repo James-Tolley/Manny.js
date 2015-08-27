@@ -3,9 +3,48 @@ var config = require('config'),
 	Promise = require('bluebird'),
 	BasicStrategy = require('passport-http').BasicStrategy,
 	JwtStrategy = require('passport-jwt').Strategy,
-	jwt = require('jsonwebtoken');
+	jwt = require('jsonwebtoken'),
+	crypto = require('crypto'),
+	orm = require('../collections/orm');
+	
+var service = {
+	
+	users: orm.collections.user,
 
-service = {
+	validateNewUserModel: function(model) {
+
+		return service.findUser(model.email)
+		.then(function(user) {
+			if (user) { throw new Error("Email address is already in use");	}
+			if (!model.password) { throw new Error("Password is required"); }
+			if (!model.confirmPassword) { throw new Error("Password confirmation is required"); }
+
+			if (model.password !== model.confirmPassword) { throw new Error("Passwords do not match"); } 
+		});
+
+	},
+
+	register: function(newUserModel) {
+
+		return service.validateNewUserModel(newUserModel)
+		.then(function() {
+
+			return service.users.create({
+				name: newUserModel.name,
+				email: newUserModel.email,
+				salt: crypto.randomBytes(16).toString('hex'),
+			})
+
+		}).then(function(newUser) {
+			newUser.password = newUser.hashPassword(newUserModel.password);
+			return newUser.save();
+		});
+	},
+
+	findUser : function(email) {
+		return service.users.findOne().where({email: email});
+	},
+
 	login : function(username, password) {
 		var user = {
 			id: 1,

@@ -28,15 +28,25 @@ function initAdapters(o) {
 	return options;
 }
 
-exports.initialize = function() {
+var orm = {
+	collections: {},
 
-	var waterline = new Waterline();
+	initialize : function() {
 
-	waterline.loadCollection(User);
+		var waterline = new Waterline();
 
-	options = config.get('orm.waterline');
-	options = initAdapters(options);
-	
-	var init = Promise.promisify(waterline.initialize, waterline);
-	return init(options);
+		waterline.loadCollection(User);
+
+		options = config.get('orm.waterline');
+		options = initAdapters(options);
+		
+		var init = Promise.promisify(waterline.initialize, waterline);
+		return init(options).then(function(models) {
+			orm.collections = models.collections;
+		})
+	}
 }
+
+
+
+module.exports = orm;
