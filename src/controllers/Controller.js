@@ -1,6 +1,6 @@
 var passport = require('passport');
 
-Controller = function(routes) {
+var Controller = function(routes) {
 	this.routes = routes;
 }
 
@@ -11,8 +11,8 @@ Controller.prototype.initializeRoutes = function(app) {
 
 	function initializeRoute(routeName, route) 
 	{
-		method = route.method || 'get';
-		auth = route.auth;
+		var method = route.method || 'get';
+		var auth = route.auth;
 
 		if (auth) {
 			app[method](route.href, route.auth, route.action);	

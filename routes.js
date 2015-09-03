@@ -13,8 +13,8 @@ var RouteDirectory = function() {
 
 	this.initializeControllers = function(app, routePrefix) {
 
-		function initializeController(controller) {
-			var ctlr = new controller(routePrefix);
+		function initializeController(Controller) {
+			var ctlr = new Controller(routePrefix);
 			ctlr.initializeRoutes(app);
 
 			return ctlr;

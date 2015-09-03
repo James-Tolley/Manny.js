@@ -37,7 +37,7 @@ var orm = {
 
 		waterline.loadCollection(User);
 
-		options = config.get('orm.waterline');
+		var options = config.get('orm.waterline');
 		options = initAdapters(options);
 		
 		var init = Promise.promisify(waterline.initialize, waterline);

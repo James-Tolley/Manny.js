@@ -6,29 +6,29 @@ var User = function(data) {
 
 	var id = _original.id;
 	var password = _original.password;
-	var salt = _original.salt;
+	var self = this;
 
-	this.name = _original.name;
-	this.email = _original.email;
-	this.salt = _original.salt;
+	self.name = _original.name;
+	self.email = _original.email;
+	self.salt = _original.salt;
 
 	Object.defineProperties(this, {
 		"id": {
 			get: function() { return id; }
 		},
 		"password": {
-			get: function() { return password; }
-			set: function(value) { updatePassword(value); }
+			get: function() { return password; },
+			set: function(value) { self.updatePassword(value); }
 		},
 	});		
 }
 
 User.prototype = {
-	checkPassword = function(password) {
+	checkPassword : function(password) {
 		return encryptPassword(password, this.salt) == this.password;
-	}
+	},
 
-	updatePassword = function(password) {
+	updatePassword : function(password) {
 		this.salt = crypto.randomBytes(64).toString('hex');
 		this.password = encryptPassword(password, this.salt);
 	}
