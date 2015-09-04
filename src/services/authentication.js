@@ -5,15 +5,26 @@ var config = require('config'),
 	JwtStrategy = require('passport-jwt').Strategy,
 	jwt = require('jsonwebtoken'),
 	crypto = require('crypto'),
-	orm = require('../collections/orm');
+	userService = require('./users');
 	
+function generateSalt() {
+	return crypto.randomBytes(16).toString('hex');	
+}
+
+function hashPassword(password, salt) {
+	return crypto.pbkdf2Sync(password, salt, 4096, 256).toString('hex');	
+};
+
+function checkPassword(user, password) {
+	var hash = hashPassword(password, user.salt);
+	return hash === user.password;
+}
+
 var service = {
 	
-	users: orm.collections.user,
-
 	validateNewUserModel: function(model) {
 
-		return service.findUser(model.email)
+		return userService.find(model.email)
 		.then(function(user) {
 			if (user) { throw new Error("Email address is already in use");	}
 			if (!model.password) { throw new Error("Password is required"); }
@@ -24,35 +35,31 @@ var service = {
 
 	},
 
-	register: function(newUserModel) {
+	register: function(model) {
 
-		return service.validateNewUserModel(newUserModel)
+		return service.validateNewUserModel(model)
 		.then(function() {
-
-			return service.users.create({
-				name: newUserModel.name,
-				email: newUserModel.email,
-				salt: crypto.randomBytes(16).toString('hex'),
-			})
-
-		}).then(function(newUser) {
-			newUser.password = newUser.hashPassword(newUserModel.password);
-			return newUser.save();
+			var salt = generateSalt();
+			var user = {
+				email : model.email,
+				name : model.name,
+				salt : salt,
+				password: hashPassword(model.password, salt)
+			}
+			return userService.create(user)
 		});
 	},
 
-	findUser : function(email) {
-		return service.users.findOne().where({email: email});
-	},
-
-	login : function(username, password) {
-		var user = {
-			id: 1,
-			name: "Test user",
-			email: "test@example.com",
-		};
-
-		return user;
+	login : function(email, password) {
+		
+		return userService.find(email)
+		.then(function(user) {
+			if (!user || !checkPassword(user, password)) {
+				throw new Error("Invalid Login");
+			}
+			
+			return user;
+		});
 	},
 
 	tokenLogin : function(token) {
@@ -81,13 +88,11 @@ var service = {
 		return token;
 	},
 
+	/* Authentication methods */
 	basicAuth: passport.authenticate('basic', { session: false}),
 	tokenAuth: passport.authenticate('jwt', {session: false}),
-
-	/*
-	 	Allow the request regardless, but set the correct user if authorized
-	*/
 	optionalAuth: function(req, res, next) {
+	 	//Allow the request regardless, but set the correct user if authorized
 		passport.authenticate('jwt', function(err, user, info) {
 			req.user = user;
 			next();
@@ -97,8 +102,12 @@ var service = {
 
 /* Authentication setup */
 passport.use('basic', new BasicStrategy(function(username, password, done) {
-	var user = service.login(username, password);
-	return done(null, user);
+	service.login(username, password).then(function(user) {
+		return done(null, user);	
+	}).catch(function(e) {
+		return done(e, false);
+	});
+	
 }));
 
 var jwtOptions = config.get('security.jwt');

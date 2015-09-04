@@ -75,14 +75,13 @@ describe('Auth', function() {
 		it("Should exchange valid login details for a bearer token", function(done) {
 			request(url)
 			.post('/api/token')
-			.auth('user@example.com', 'password')
+			.auth('test@example.com', 'secret')
+			.expect(200)
 			.end(function(err, res) {
 				if (err) {
-					throw err;
+					throw err
 				}
-				res.should.have.property('status', 200);
 				res.body.should.have.property('access_token');
-
 				done();
 			})
 		});
@@ -92,7 +91,7 @@ describe('Auth', function() {
 
 			request(url)
 			.post('/api/token')
-			.auth('user@example.com', 'password')
+			.auth('test@example.com', 'secret')
 			.expect(200)
 			.end(function(err, res) {
 				token = res.body.access_token;

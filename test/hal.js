@@ -34,7 +34,7 @@ describe('Hypermedia', function() {
 		before(function(done) {
 			request(url)
 			.post('/api/token')
-			.auth('user@example.com', 'password')
+			.auth('test@example.com', 'secret')
 			.expect(200)
 			.end(function(err, res) {
 				token = res.body.access_token;
