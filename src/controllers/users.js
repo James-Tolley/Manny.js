@@ -1,8 +1,6 @@
 var authService = require('../services/authentication'),
-	passport = require('passport'),
 	Promise = require('bluebird'),
-	hal = require('hal'),
-	Controller = require('./Controller');
+	hal = require('hal');
 
 function UsersController(routePrefix) {
 	
@@ -17,12 +15,8 @@ function UsersController(routePrefix) {
 	var routes = {
 		"list": { rel: "users", href: routePrefix + '/users', auth: authService.tokenAuth, method: 'get', action: self.listUsers }
 	}
-	
-	Controller.call(this, routes);
-	this.constructor = UsersController;	
-	
+
 }
 
-UsersController.prototype = Controller.prototype
 
 module.exports = UsersController;

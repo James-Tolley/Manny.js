@@ -1,14 +1,20 @@
 var authService = require('../services/authentication'),
-	passport = require('passport'),
 	Promise = require('bluebird'),
-	hal = require('hal'),
-	Controller = require('./Controller');
+	hal = require('hal');
 
-function AuthenticationController(routePrefix) {
+function AuthenticationController(app, root) {
 
-	var self = this;
+	var 
+		self = this,
+		routes = {
+			login: root + '/token',
+			register: root + '/register',
+			me: root + '/me'
+		}
+			
+	self.app = app;
 
-	this.token = function(req, res) {
+	self.token = function(req, res) {
 		if (!req.user) {
 			return res.json(401);
 		}
@@ -23,11 +29,11 @@ function AuthenticationController(routePrefix) {
 		});
 	}
 
-	this.register = function(req, res) {
+	self.register = function(req, res) {
 
 		authService.register(req.body).then(function(user) {
-			var resource = new hal.Resource(user, self.routes.me.href);
-			resource.link(self.routes.login.rel, self.routes.login.href);
+			var resource = new hal.Resource(user, routes.me);
+			resource.link('login', routes.login);
 
 			return res.json(resource);
 		}).catch(function(err) {
@@ -35,7 +41,7 @@ function AuthenticationController(routePrefix) {
 		})
 	}
 
-	this.me = function(req, res) {
+	self.me = function(req, res) {
 		if (!req.user) {
 			return res.json(400, 'User not found');
 		}
@@ -47,33 +53,26 @@ function AuthenticationController(routePrefix) {
 		}
 
 		return res.json(userInfo);
-	}	
-
-	var routes = {
-		"login": { rel: "login", href: routePrefix + '/token', auth: authService.basicAuth, method: 'post', action: self.token },
-		"register": { rel: "register", href: routePrefix + '/register', method: 'post', action: self.register },
-		"me": { rel: "me", href: routePrefix + '/me', auth: authService.tokenAuth, method: 'get', action: self.me}
-	}	
-
-	Controller.call(this, routes);
-
-	this.constructor = AuthenticationController;	
-}
-
-AuthenticationController.prototype = Controller.prototype
-
-AuthenticationController.prototype.getDirectory = function(user) {
-		
-	if (user) {
-		return [
-			this.routes.me
-		]
 	}
-
-	return [
-		this.routes.login,
-		this.routes.register
-	]
+	
+	// Return available actions for root directory
+	self.getDirectory = function(user) {		
+			
+		if (user) {
+			return [
+				new hal.Link('me', { href: routes.me })
+			]
+		}
+	
+		return [
+			new hal.Link('login', {href: routes.login}),
+			new hal.Link('register', {href: routes.register})
+		]
+	}	
+	
+	app.post(routes.login, authService.basicAuth, self.token);
+	app.post(routes.register, self.register);
+	app.get(routes.me, authService.tokenAuth, self.me);
 }
 
 exports.Controller = AuthenticationController;
