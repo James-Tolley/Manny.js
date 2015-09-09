@@ -26,7 +26,9 @@
     "waterline": "^0.10.26"
   },
   "devDependencies": {
+    "rewire": "^2.3.4",
     "should": "^7.0.4",
+    "sinon": "^1.16.1",
     "supertest": "^1.0.1"
   }
 }

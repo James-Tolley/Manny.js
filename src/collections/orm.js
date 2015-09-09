@@ -2,7 +2,10 @@ var
 	Promise = require('bluebird'),
 	config = require('config'),
 	Waterline = require('waterline'),
-	User = require('./User');
+	User = require('./User'),
+	Role = require('./Role'),
+	Permission = require('./Permission'),
+	UserRole = require('./UserRole');
 
 /*
 	Convert all adapter names to actual object references.
@@ -36,6 +39,9 @@ var orm = {
 		var waterline = new Waterline();
 
 		waterline.loadCollection(User);
+		waterline.loadCollection(Role);
+		waterline.loadCollection(Permission);
+		waterline.loadCollection(UserRole);
 
 		var options = config.get('orm.waterline');
 		options = initAdapters(options);

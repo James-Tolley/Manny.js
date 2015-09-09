@@ -15,6 +15,7 @@ Application provides login via username and password which it exchanges for a Js
 ## Directory Structure ##
 
  - server.js - Main application file
+ - routes.js - Api route initialization
  - /node_modules - Dependencies
  - /config
     - default.js - Default configuration
@@ -23,7 +24,8 @@ Application provides login via username and password which it exchanges for a Js
         - orm.js   - ORM initialization
     - /controllers - Api controllers.
     - /services    - Business logic
- - /test - Mocha tests
+   /test - Mocha unit tests
+ - /test-run - Mocha integration tests
   
 
 ## Configuration ##
@@ -84,5 +86,5 @@ Skynet depends on the following packages:
 Integration tests are written in mocha. Start the application, then run:
 
 ```
-> mocha
+> mocha test-run
 ```

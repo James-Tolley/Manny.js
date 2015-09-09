@@ -16,11 +16,12 @@ var User = Waterline.Collection.extend({
 		deleted: {
 			type: 'boolean',
 			defaultsTo: false,
+		},
+		roles: {
+			collection: 'userrole',
+			via: 'user'
 		}
 	}
 });
-
-
-
 
 module.exports = User;

@@ -5,32 +5,37 @@ var config = require('config'),
 	JwtStrategy = require('passport-jwt').Strategy,
 	jwt = require('jsonwebtoken'),
 	crypto = require('crypto'),
-	userService = require('./users');
+	orm = require('../collections/orm');
 	
-function generateSalt() {
-	return crypto.randomBytes(16).toString('hex');	
-}
 
-function hashPassword(password, salt) {
-	return crypto.pbkdf2Sync(password, salt, 4096, 256).toString('hex');	
-};
 
-function checkPassword(user, password) {
-	var hash = hashPassword(password, user.salt);
-	return hash === user.password;
-}
+var users = orm.collections.user;
 
 var service = {
 	
+	generateSalt: function() {
+		return crypto.randomBytes(16).toString('hex');	
+	},
+
+	hashPassword: function(password, salt) {
+		return crypto.pbkdf2Sync(password, salt, 4096, 256).toString('hex');	
+	},
+
+	checkPassword: function(user, password) {
+		var hash = service.hashPassword(password, user.salt);
+		return hash === user.password;
+	},
+		
 	validateNewUserModel: function(model) {
 
-		return userService.find(model.email)
+		if (!model.email) { return Promise.reject(new Error("Email address is required")); }
+		if (!model.password) { return Promise.reject(new Error("Password is required")); }
+		if (!model.confirmPassword) { return Promise.reject(new Error("Password confirmation is required")); }
+		if (model.password !== model.confirmPassword) { return Promise.reject(new Error("Passwords do not match")); }
+		 		
+		return users.findOne({email: model.email})
 		.then(function(user) {
 			if (user) { throw new Error("Email address is already in use");	}
-			if (!model.password) { throw new Error("Password is required"); }
-			if (!model.confirmPassword) { throw new Error("Password confirmation is required"); }
-
-			if (model.password !== model.confirmPassword) { throw new Error("Passwords do not match"); } 
 		});
 
 	},
@@ -39,22 +44,22 @@ var service = {
 
 		return service.validateNewUserModel(model)
 		.then(function() {
-			var salt = generateSalt();
+			var salt = service.generateSalt();
 			var user = {
 				email : model.email,
 				name : model.name,
 				salt : salt,
-				password: hashPassword(model.password, salt)
+				password: service.hashPassword(model.password, salt)
 			}
-			return userService.create(user)
+			return users.create(user)
 		});
 	},
 
 	login : function(email, password) {
 		
-		return userService.find(email)
+		return users.findOne({email: email})
 		.then(function(user) {
-			if (!user || !checkPassword(user, password)) {
+			if (!user || !service.checkPassword(user, password)) {
 				throw new Error("Invalid Login");
 			}
 			
@@ -63,13 +68,7 @@ var service = {
 	},
 
 	tokenLogin : function(token) {
-		var user = {
-			id: 1,
-			name: "Test user",
-			email: "test@example.com",
-		
-		};
-		return user;
+		return users.findOne({id: token.user_id});
 	},
 
 	issueToken: function(user) {

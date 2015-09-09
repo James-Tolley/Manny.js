@@ -1,6 +1,7 @@
-var authService = require('../services/authentication'),
+var 
 	Promise = require('bluebird'),
-	hal = require('hal');
+	hal = require('hal'),
+	authService = require('../services/authentication');
 
 function AuthenticationController(app, root) {
 

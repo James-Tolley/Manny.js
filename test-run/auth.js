@@ -1,5 +1,4 @@
 var should = require('should'),
-	assert = require('assert'),
 	request = require('supertest'),
 	config = require('config'),
 	url = 'localhost:' + config.get('server.port');
