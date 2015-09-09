@@ -4,7 +4,8 @@
 
 var 
 	orm = require('../collections/orm'),
-	Promise = require('bluebird');
+	Promise = require('bluebird'),
+	_ = require('lodash');
 
 var 
 	users = orm.collections.user,
@@ -29,6 +30,10 @@ var service = {
 		return permissions.find();
 	},
 	
+	findPermission: function(name) {
+		return permissions.findOne({name: name});
+	},
+	
 	createRole: function(name) {
 		if (!name) { return Promise.reject(new Error("Role name is required")); }
 		
@@ -46,6 +51,30 @@ var service = {
 			if (!role) { throw new Error("Role not found")}
 			return roles.destroy({id: role.id});
 		});
+	},
+	
+	grantPermission: function(roleName, permissionName) {
+		Promise.all([
+			roles.findOne({name: roleName}).populate('permissions'),
+			permissions.findOne({name: permissionName})
+		])
+		.spread(function(role, permission) {
+			if (!role) { throw new Error("Role does not exist"); }
+			if (!permission) { throw new Error("Permission does not exist"); }
+			
+			var existingPermission = _.find(role.permissions, { name: permissionName });
+			if (existingPermission) {
+				throw new Error("Role already has this permission");
+			}
+				
+			var scopeConflict = _.find(role.permissions, { isGlobal: !permission.isGlobal });
+			if (scopeConflict) {
+				throw new Error("Cannot mix global and scopeable permissions in a single role");
+			}
+			
+			role.permissions.add(permission);
+			return role.save();
+		})
 	}
 }
 

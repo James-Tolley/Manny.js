@@ -80,6 +80,7 @@ Skynet depends on the following packages:
  - [passport-http](https://github.com/jaredhanson/passport-http)
  - [waterline](https://github.com/balderdashy/waterline)
  - [sails-memory](https://github.com/balderdashy/sails-memory)
+ - [lodash](https://lodash.com/)
 
 ## Testing ##
 

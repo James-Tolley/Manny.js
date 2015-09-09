@@ -54,5 +54,57 @@ describe('Role management', function() {
 		
 	});
 	
+	describe('Permission management', function() {
+						
+			
+		it('Can list all permissions in the system', function(done) {
+
+			var permissionMock = {
+				find: sinon.stub().returns(Promise.resolve([
+					{name: 'permission one'},
+					{name: 'permission two'},
+					{name: 'global permission'}
+				]))
+			}
+					
+			service.__set__('permissions', permissionMock);
+			
+			return service.permissions().then(function(permissions) {
+				permissions.length.should.equal(3);
+				done();
+			}).catch(function(err) {
+				throw err;
+			})
+		})
+		
+		it('Can grant a permission to a role', function(done) {
+			
+
+			var permissionMock = {
+				findOne : sinon.stub().returns(Promise.resolve({id: 1, name: 'permission one'}))
+			};
+
+			var rolePromise = Promise.resolve({id: 1, name: 'permission one'});
+			rolePromise.populate = function(name) {
+				return this;
+			}			
+			var roleMock = {
+				findOne	: sinon.stub().returns(rolePromise)
+			}
+			
+			service.__set__('roles', roleMock);
+			service.__set__('permissions', permissionMock);
+			
+			return service.grantPermission('role one', 'permission one')
+			.then(function(role) {
+				done();		
+			}).catch(function(err) {
+				throw err;
+			});
+			
+		});
+		
+	})
+	
 	
 });
