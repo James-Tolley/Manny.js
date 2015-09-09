@@ -24,7 +24,7 @@ Application provides login via username and password which it exchanges for a Js
         - orm.js   - ORM initialization
     - /controllers - Api controllers.
     - /services    - Business logic
-   /test - Mocha unit tests
+ - /test - Mocha unit tests
  - /test-run - Mocha integration tests
   
 
