@@ -83,7 +83,15 @@ Skynet depends on the following packages:
 
 ## Testing ##
 
-Integration tests are written in mocha. Start the application, then run:
+Unit tests and integration tests are written in mocha. 
+
+Unit tests - run
+
+```
+> mocha
+```
+
+Integration tests - start the application, then run:
 
 ```
 > mocha test-run
