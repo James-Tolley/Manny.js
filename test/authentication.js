@@ -82,6 +82,7 @@ describe('Authentication', function() {
 			service.__set__("users", usersMock);
 			
 			service.register({
+				email: '',
 				password: 'secret',
 				confirmPassword: 'secret'
 			}).then(function(user) {
@@ -94,6 +95,28 @@ describe('Authentication', function() {
 			});	
 		});
 		
+		it('Should reject an invalid email', function(done) {
+			var usersMock = {
+					findOne: sinon.stub().returns(Promise.resolve(null)),
+					create: sinon.stub().returnsArg(0)
+				}
+			
+			service.__set__("users", usersMock);
+			
+			service.register({
+				email: 'a@b@example.com',
+				password: 'secret',
+				confirmPassword: 'secret'
+			}).then(function(user) {
+				should.not.exist(user);
+				done();
+			}).catch(function(err) {
+				console.log(err);
+				err.should.match(/email/i);
+				done();
+			});	
+		});		
+				
 		it('Should reject missing password', function(done) {
 			var usersMock = {
 					findOne: sinon.stub().returns(Promise.resolve(null)),

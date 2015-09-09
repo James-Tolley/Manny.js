@@ -1,11 +1,11 @@
 /*
-	Authorization service. Roles, permissions, etc.
+	Role Management
 */
 
 var 
-	orm = require('../collections/orm');
-	
-	
+	orm = require('../collections/orm'),
+	Promise = require('bluebird');
+
 var 
 	users = orm.collections.user,
 	roles = orm.collections.role,
@@ -30,11 +30,11 @@ var service = {
 	},
 	
 	createRole: function(name) {
-		if (!name) { throw new Error("Role name is required"); }
+		if (!name) { return Promise.reject(new Error("Role name is required")); }
 		
 		return service.findRole(name)
 		.then(function(role) {
-			if (role) { throw new Error("Role " + name + "already exists") }
+			if (role) { throw new Error("Role " + name + " already exists") }
 			
 			return roles.create({name: name});
 		});

@@ -25,10 +25,17 @@ var service = {
 		var hash = service.hashPassword(password, user.salt);
 		return hash === user.password;
 	},
+	
+	validEmail: function(email) {
+		//http://stackoverflow.com/questions/46155/validate-email-address-in-javascript
+		var regex = /^[a-z0-9!#$%&'*+\/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+\/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?$/i;
+		return regex.test(email);	
+	},
 		
 	validateNewUserModel: function(model) {
 
 		if (!model.email) { return Promise.reject(new Error("Email address is required")); }
+		if (!service.validEmail(model.email)) { return Promise.reject(new Error("Email address is not valid")); }
 		if (!model.password) { return Promise.reject(new Error("Password is required")); }
 		if (!model.confirmPassword) { return Promise.reject(new Error("Password confirmation is required")); }
 		if (model.password !== model.confirmPassword) { return Promise.reject(new Error("Passwords do not match")); }
