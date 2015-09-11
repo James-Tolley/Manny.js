@@ -71,6 +71,17 @@ describe('Auth', function() {
 
 	describe("When I have an account", function() {
 
+		it("Should reject invalid login details", function(done) {
+			request(url)
+			.post('/api/token')
+			.auth('test@example.com', 'secret-wrong')
+			.expect(401)
+			.end(function(err, res) {
+				res.should.have.property('status', 401);
+				done();
+			})			
+		});
+		
 		it("Should exchange valid login details for a bearer token", function(done) {
 			request(url)
 			.post('/api/token')

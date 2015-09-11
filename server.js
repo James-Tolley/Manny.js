@@ -1,6 +1,9 @@
-var orm = require('./src/collections/orm');
+var orm = require('./src/collections/orm');	
 
 orm.initialize()
+.then(function() {
+	return require('./initialConfiguration')();	
+})
 .then(boot)
 .catch(function(e) {
 	throw e;
@@ -8,6 +11,7 @@ orm.initialize()
 
 
 function boot() {
+	
 	var 
 		express = require('express'),
 		bodyParser = require('body-parser'),
@@ -23,6 +27,7 @@ function boot() {
 
 	var port = config.get('server.port');
 	app.listen(port);
+	console.log('Using configuration: ' + app.settings.env);
 	console.log('Listening on port ' + port);	
 }
 

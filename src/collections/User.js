@@ -13,6 +13,10 @@ var User = Waterline.Collection.extend({
 		name: 'string',
 		password: 'string',
 		salt: 'string',
+		isAdmin: {
+			type: 'boolean',
+			defaultsTo: false
+		},
 		deleted: {
 			type: 'boolean',
 			defaultsTo: false,

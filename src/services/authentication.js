@@ -6,8 +6,6 @@ var config = require('config'),
 	jwt = require('jsonwebtoken'),
 	crypto = require('crypto'),
 	orm = require('../collections/orm');
-	
-
 
 var users = orm.collections.user;
 
@@ -47,6 +45,11 @@ var service = {
 
 	},
 
+	/**
+	 * Register a new user.
+	 * @returns a promise which resolves with the newly created user
+	 * @throws an Error with relevant message if the model does not pass validation
+	 */
 	register: function(model) {
 
 		return service.validateNewUserModel(model)
@@ -62,22 +65,44 @@ var service = {
 		});
 	},
 
+	/**
+	 * Log in a user via email/password combo
+	 * @returns A promise which resolves with the authenticated user, or null if either email or password is invalid.
+	 */
 	login : function(email, password) {
 		
 		return users.findOne({email: email})
 		.then(function(user) {
 			if (!user || !service.checkPassword(user, password)) {
-				throw new Error("Invalid Login");
+				return null;
 			}
 			
 			return user;
 		});
 	},
-
+	
+	/**
+	 * Sets a user as system admin
+	 * todo: Move this out of authentication
+	 */
+	setAdmin: function(user, isAdmin) {
+		users.update({id: user.id}, {isAdmin: isAdmin});
+	},
+	
+	/**
+	* Log in user via token.
+	* @returns a promise which resolves with the authenticated user, or null if token is invalid.
+	*/
 	tokenLogin : function(token) {
 		return users.findOne({id: token.user_id});
 	},
 
+	/**
+	 * Generate a json web token (jwt) for a given user.
+	 * Token settings are configured in the application config
+	 * @see config/default.json
+	 * @returns the token.
+	 */
 	issueToken: function(user) {
 		var payload = {
 			user_id : user.id,
@@ -85,6 +110,7 @@ var service = {
 			email: user.email
 		};
 
+		// todo: does config handly these not existing? Set defaults
 		var options = {
 			expiresInSeconds: config.get('security.jwt.expiresInSeconds'),
 			issuer: config.get('security.jwt.issuer')
@@ -94,7 +120,7 @@ var service = {
 		return token;
 	},
 
-	/* Authentication methods */
+	/* Authentication method hooks for controllers to use instead of referencing passport directly */
 	basicAuth: passport.authenticate('basic', { session: false}),
 	tokenAuth: passport.authenticate('jwt', {session: false}),
 	optionalAuth: function(req, res, next) {
@@ -113,11 +139,9 @@ passport.use('basic', new BasicStrategy(function(username, password, done) {
 	}).catch(function(e) {
 		return done(e, false);
 	});
-	
 }));
 
 var jwtOptions = config.get('security.jwt');
-
 passport.use('jwt', new JwtStrategy(jwtOptions, function(jwt, done) {
 	Promise.resolve(service.tokenLogin(jwt)).then(function(user) {
 		return done(null, user || false);

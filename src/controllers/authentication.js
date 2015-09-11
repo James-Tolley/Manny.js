@@ -17,7 +17,7 @@ function AuthenticationController(app, root) {
 
 	self.token = function(req, res) {
 		if (!req.user) {
-			return res.json(401);
+			return res.json(401, "Login failed");
 		}
 
 		Promise.resolve(authService.issueToken(req.user)).then(function(token) {
