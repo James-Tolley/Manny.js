@@ -84,7 +84,12 @@ describe('Role management', function() {
 				findOne : sinon.stub().returns(Promise.resolve({id: 1, name: 'permission one'}))
 			};
 
-			var rolePromise = Promise.resolve({id: 1, name: 'permission one'});
+			var rolePromise = Promise.resolve({
+				id: 1, 
+				name: 'role one', 
+				permissions: [],
+				save: sinon.stub().returns(Promise.resolve(true))
+			});
 			rolePromise.populate = function(name) {
 				return this;
 			}			

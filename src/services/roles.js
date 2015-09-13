@@ -54,7 +54,7 @@ var service = {
 	},
 	
 	grantPermission: function(roleName, permissionName) {
-		Promise.all([
+		return Promise.all([
 			roles.findOne({name: roleName}).populate('permissions'),
 			permissions.findOne({name: permissionName})
 		])
@@ -72,7 +72,7 @@ var service = {
 				throw new Error("Cannot mix global and scopeable permissions in a single role");
 			}
 			
-			role.permissions.add(permission);
+			role.permissions.push(permission);
 			return role.save();
 		})
 	}
