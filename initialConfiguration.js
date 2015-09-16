@@ -2,10 +2,10 @@
  * Check app intial configuration and perform it prior to boot
  */
 
+/* global process */
 var orm = require('./src/collections/orm'),
 	authService = require('./src/services/authentication'),
-	Promise = require('bluebird'),
-	pkg = require('./package.json');
+	Promise = require('bluebird');
 
 function isConfigured() {
 	
@@ -15,45 +15,62 @@ function isConfigured() {
 	})
 }
 
-function configureAdmin(rl) {
-	
-	var question = Promise.promisify(function(question, callback) {
-		rl.question(question, callback.bind(null, null));
-	})
-	
-	var adminUser = {};
-	return question('Admin account email:').then(function(email) {
-		adminUser.email = email
-		return question('Admin account password:');
-	}).then(function(password) {
-		adminUser.password = password;
-		return question('Confirm password:')
-	}).then(function(confirm) {
-		adminUser.confirmPassword = confirm;
-		return authService.register(adminUser);
-	}).then(function(user) {
+function configureAdmin(adminUser) {
+	return authService.register(adminUser)
+	.then(function(user) {
 		return authService.setAdmin(user, true);
-	});	
+	})
+}
+
+function configureFromObject(config) {
+	console.log("Using configuration file");
+	var adminUser = config.admin;
+	adminUser.confirmPassword = adminUser.password;
+	return configureAdmin(adminUser);
+}
+
+function configureFromCommandLine() {
+	var read = require('read');
+	var adminUser = {};
+	
+	var question = Promise.promisify(function(options, callback) {
+		read(options, callback.bind(null, null));
+	})
 		
+	return question({prompt: 'Admin account email:'})
+	.spread(function(err, email, isDefault) {
+		adminUser.email = email;
+		return question({prompt: 'Admin account password:', silent: true});	
+	}).spread(function(err, password, isDefault) {
+		adminUser.password = password;
+		return question({prompt: 'Confirm password:', silent: true});	
+	}).spread(function(err, confirm, isDefault) {
+		adminUser.confirmPassword = confirm;
+		return configureAdmin(adminUser);
+	});	
+}
+
+function getInitialConfig() {
+	var args = process.argv.slice(2);
+	for (var i = 0; i < args.length; i++) {
+		if (args[i].match(/^--setup/i)) {
+			var file = args[i].split('=')[1];
+			
+			var config = require(file);
+			return config;
+		}
+	}
+	return false;
 }
 
 function configure() {
-	console.log(pkg.name + ' has not been configured yet. Performing initial setup');	
+	console.log('Application has not been configured yet. Performing initial setup');	
+	var initialConfig = getInitialConfig();
 	
-	var readline = require('readline');
-	var rl = readline.createInterface({
-		input: process.stdin,
-		output: process.stdout
-	});
-	
-	return configureAdmin(rl)
-	.finally(function() {
-		rl.close();
-	})
+	return initialConfig ? configureFromObject(initialConfig) : configureFromCommandLine();
 }
 
 module.exports = function() {
-	
 	return isConfigured()
 	.then(function(configured) {
 		return configured || configure();
