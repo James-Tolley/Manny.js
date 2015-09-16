@@ -3,9 +3,11 @@ var should = require('should'),
 	config = require('config'),
 	url = 'localhost:' + config.get('server.port');
 
+/*global describe, it*/
 describe('Auth', function() {
 	
-
+	var testUser = {};
+	
 	it("Should return unauthorized if we're not logged in", function(done) {
 
 		request(url)
@@ -20,13 +22,18 @@ describe('Auth', function() {
 
 		it("Should allow me to create one", function(done) {
 
+			testUser = {
+				email: Date.now() + '@example.com',
+				password: 'secret'
+			}
+			
 			request(url)
 			.post('/api/register')
 			.send({
 				name: "Test user",
-				email: "test@example.com",
-				password: "secret",
-				confirmPassword: "secret"
+				email: testUser.email,
+				password: testUser.password,
+				confirmPassword: testUser.password
 			})
 			.expect(200)
 			.end(function(err, res) {
@@ -43,7 +50,7 @@ describe('Auth', function() {
 			.post('/api/register')
 			.send({
 				name: "Test user 2",
-				email: "test@example.com",
+				email: testUser.email,
 				password: "secret",
 				confirmPassword: "secret"
 			}).expect(400)
@@ -74,7 +81,7 @@ describe('Auth', function() {
 		it("Should reject invalid login details", function(done) {
 			request(url)
 			.post('/api/token')
-			.auth('test@example.com', 'secret-wrong')
+			.auth(testUser.email, 'secret-wrong')
 			.expect(401)
 			.end(function(err, res) {
 				res.should.have.property('status', 401);
@@ -85,43 +92,34 @@ describe('Auth', function() {
 		it("Should exchange valid login details for a bearer token", function(done) {
 			request(url)
 			.post('/api/token')
-			.auth('test@example.com', 'secret')
+			.auth(testUser.email, testUser.password)
 			.expect(200)
 			.end(function(err, res) {
 				if (err) {
 					throw err
 				}
 				res.body.should.have.property('access_token');
+				testUser.token = res.body.access_token;
 				done();
 			})
 		});
 
 		it("Should allow access via an access token", function(done) {
-			var token;
 
 			request(url)
-			.post('/api/token')
-			.auth('test@example.com', 'secret')
+			.get('/api/me')
+			.set('Authorization', 'JWT ' + testUser.token)
 			.expect(200)
 			.end(function(err, res) {
-				token = res.body.access_token;
+				if (err) {
+					throw err;
+				}
 
-				request(url)
-				.get('/api/me')
-				.set('Authorization', 'JWT ' + token)
-				.expect(200)
-				.end(function(err, res) {
-					if (err) {
-						throw err;
-					}
-
-					res.should.have.property('status', 200);
-
-					done();
-				});			
-			})
-
-		});
+				res.should.have.property('status', 200);
+				done();
+			});	
+		});		
+		
 	});
 
 });

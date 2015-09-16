@@ -3,7 +3,35 @@ var should = require('should'),
 	config = require('config'),
 	url = 'localhost:' + config.get('server.port');
 
+/*global describe, it, before*/
 describe('Hypermedia', function() {
+	
+	var testUser = {};
+	
+	before(function(done) {
+
+		testUser = {
+			email: Date.now() + '@example.com',
+			password: 'secret'
+		}
+		
+		request(url)
+		.post('/api/register')
+		.send({
+			name: "Test user",
+			email: testUser.email,
+			password: testUser.password,
+			confirmPassword: testUser.password
+		})
+		.expect(200)
+		.end(function(err, res) {
+			if (err) {
+				throw err;
+			}
+			done();
+		});
+	});		
+
 
 	describe('When not logged in', function() {
 		it('Should tell me where to go to login', function(done) {
@@ -33,7 +61,7 @@ describe('Hypermedia', function() {
 		before(function(done) {
 			request(url)
 			.post('/api/token')
-			.auth('test@example.com', 'secret')
+			.auth(testUser.email, testUser.password)
 			.expect(200)
 			.end(function(err, res) {
 				token = res.body.access_token;

@@ -86,7 +86,7 @@ var service = {
 	 * todo: Move this out of authentication
 	 */
 	setAdmin: function(user, isAdmin) {
-		users.update({id: user.id}, {isAdmin: isAdmin});
+		return users.update({id: user.id}, {isAdmin: isAdmin});
 	},
 	
 	/**

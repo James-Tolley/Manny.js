@@ -23,16 +23,18 @@ describe('Roles', function() {
 		
 		it('Should tell me where to find the role management API', function(done) {
 						
-			login('admin@example.com', 'secret').then(function(token) {
-				request(url)
+			login('admin@example.com', 'password').then(function(token) {
+				return request(url)
 				.get('/api')
 				.set('Authorization', 'JWT ' + token)
 				.end(function(err, res) {
 					if (err) { throw err };
 					
-					res.body._links.should.have.property('role-admin');
+					res.body._links.should.have.property('roles');
 				});
-			});
+			}).finally(function() {
+				done();
+			})
 		})
 		
 	});

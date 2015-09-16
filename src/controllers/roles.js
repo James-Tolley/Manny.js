@@ -42,6 +42,17 @@ function RolesController(app, root) {
 		return res.json(501, req.params.id);
 	}
 	
+	self.getDirectory = function(user) {		
+			
+		if (user && user.isAdmin) {
+			return [
+				new hal.Link('roles', { href: routes.roles })
+			];
+		}
+	
+		return [];
+	}		
+	
 	app.get(routes.roles, authService.tokenAuth, self.getRoles);
 	app.post(routes.roles, authService.tokenAuth, self.createRole);
 	app.get(routes.role, authService.tokenAuth, self.getRole);
@@ -49,4 +60,4 @@ function RolesController(app, root) {
 	app.delete(routes.role, authService.tokenAuth, self.deleteRole);
 }
 
-module.exports = RolesController;
+exports.Controller = RolesController;
