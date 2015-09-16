@@ -3,7 +3,7 @@ var should = require('should'),
 	config = require('config'),
 	url = 'localhost:' + config.get('server.port');
 
-/*global describe, it, before*/
+/*global describe, before, it*/
 describe('Hypermedia', function() {
 	
 	var testUser = {};

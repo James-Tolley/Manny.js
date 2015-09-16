@@ -3,6 +3,7 @@ var should = require('should'),
 	config = require('config'),
 	url = 'localhost:' + config.get('server.port');
 
+/*global describe, before, it*/
 describe('Auth', function() {
 	
 	var testUser = {};
