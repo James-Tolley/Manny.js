@@ -5,6 +5,7 @@ var should = require('should'),
 	Promise = require('bluebird'),
 	service = rewire('../src/services/roles');
 	
+/*global describe, it*/
 describe('Role management', function() {
 	
 	describe('Role creation', function() {

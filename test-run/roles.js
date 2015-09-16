@@ -17,6 +17,7 @@ function login(username, password) {
 	});
 }
 
+/*global describe, before, it*/
 describe('Roles', function() {
 	
 	describe('If I have permission', function() {
