@@ -5,6 +5,7 @@ var should = require('should'),
 	Promise = require('bluebird'),
 	service = rewire('../src/services/authentication');
 
+/*global describe, before, it*/
 describe('Authentication', function() {
 	
 	describe('Account creation', function() {
@@ -66,7 +67,6 @@ describe('Authentication', function() {
 				should.not.exist(user);
 				done();
 			}).catch(function(err) {
-				console.log(err);
 				err.should.match(/email/i);
 				done();
 			});	
@@ -89,7 +89,6 @@ describe('Authentication', function() {
 				should.not.exist(user);
 				done();
 			}).catch(function(err) {
-				console.log(err);
 				err.should.match(/email/i);
 				done();
 			});	
@@ -111,7 +110,6 @@ describe('Authentication', function() {
 				should.not.exist(user);
 				done();
 			}).catch(function(err) {
-				console.log(err);
 				err.should.match(/email/i);
 				done();
 			});	
@@ -132,7 +130,6 @@ describe('Authentication', function() {
 				should.not.exist(user);
 				done();
 			}).catch(function(err) {
-				console.log(err);
 				err.should.match(/password/i);
 				done();
 			});	
@@ -154,7 +151,6 @@ describe('Authentication', function() {
 				should.not.exist(user);
 				done();
 			}).catch(function(err) {
-				console.log(err);
 				err.should.match(/password/i);
 				done();
 			});	
@@ -186,7 +182,6 @@ describe('Authentication', function() {
 				user.email.should.match('test@example.com');
 				done();
 			}).catch(function(err) {
-				console.log(err);
 				should.not.exist(err);
 				done();
 			})
@@ -199,7 +194,6 @@ describe('Authentication', function() {
 				should.not.exist(user);
 				done();
 			}).catch(function(err) {
-				console.log(err);
 				err.should.match(/invalid login/i)
 				done();
 			})
@@ -218,7 +212,6 @@ describe('Authentication', function() {
 				should.not.exist(user);
 				done();
 			}).catch(function(err) {
-				console.log(err);
 				err.should.match(/invalid login/i)
 				done();
 			})

@@ -26,6 +26,11 @@ var service = {
 		return roles.findOne({id: id});
 	},
 	
+	updateRole: function(id, role) {
+		//todo
+		return Promise.presolve(true);
+	},
+	
 	permissions: function() {
 		return permissions.find();
 	},

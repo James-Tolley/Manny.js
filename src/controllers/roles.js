@@ -1,7 +1,8 @@
 var 
 	Promise = require('bluebird'),
 	hal = require('hal'),
-	authService = require('../services/authentication');
+	authService = require('../services/authentication'),
+	authorization = require('../services/authorization');
 
 /*
 	Role Management Api.
@@ -53,11 +54,12 @@ function RolesController(app, root) {
 		return [];
 	}		
 	
-	app.get(routes.roles, authService.tokenAuth, self.getRoles);
-	app.post(routes.roles, authService.tokenAuth, self.createRole);
-	app.get(routes.role, authService.tokenAuth, self.getRole);
-	app.put(routes.role, authService.tokenAuth, self.updateRole);	
-	app.delete(routes.role, authService.tokenAuth, self.deleteRole);
+	//todo: cleanup
+	app.get(routes.roles, authService.tokenAuth, authorization.requirePermission('manageRoles', true), self.getRoles);
+	app.post(routes.roles, authService.tokenAuth, authorization.requirePermission('manageRoles', true), self.createRole);
+	app.get(routes.role, authService.tokenAuth, authorization.requirePermission('manageRoles', true), self.getRole);
+	app.put(routes.role, authService.tokenAuth, authorization.requirePermission('manageRoles', true), self.updateRole);	
+	app.delete(routes.role, authService.tokenAuth, authorization.requirePermission('manageRoles', true), self.deleteRole);
 }
 
 exports.Controller = RolesController;
