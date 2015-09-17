@@ -5,7 +5,7 @@ var should = require('should'),
 	Promise = require('bluebird'),
 	service = rewire('../src/services/roles');
 	
-/*global describe, it*/
+/*global describe, before, it*/
 describe('Role management', function() {
 	
 	describe('Role creation', function() {
@@ -47,6 +47,48 @@ describe('Role management', function() {
 		});
 		
 	});	
+	
+	describe('Updating a role', function() {
+		
+		before(function() {
+			var roleMock = {
+				findOne: function(opts) { 
+					return Promise.resolve({id: opts.id || 1, name: opts.name || 'role'}); 
+				},
+				update: function(lookup, update) { 
+					return Promise.resolve({id: lookup.id || 1, name: update.name || lookup.name || 'role'}); 
+				}
+			}
+			
+			service.__set__("roles", roleMock);
+		})
+		
+		it('Cannot be updated to a blank name', function() {
+			return service.updateRole(1, {name: ''})
+			.then(function() {
+				throw new Error("Should have failed")
+			}).catch(function(err) {
+				err.message.should.match(/name/i);
+			})
+		});
+		
+		it('Cannot be updated to a duplicate name', function() {
+			return service.updateRole(2, {name: 'role'})
+			.then(function() {
+				throw new Error("Should have failed")
+			}).catch(function(err) {
+				err.message.should.match(/exists/i);
+			})			
+		});
+		
+		it('Can update a role name', function() {
+			return service.updateRole(1, {name: 'blah'})
+			.then(function(role) {
+				role.name.should.equal('blah');
+			});
+		});
+		
+	});
 });
 
 describe('Permission management', function() {

@@ -11,7 +11,6 @@ function login(username, password) {
 		.post('/api/token')
 		.auth(username, password)
 		.end(function(err, res) {
-			console.log(err);
 			err ? reject(err) : resolve(res.body.access_token);
 		});
 	});
@@ -22,21 +21,71 @@ describe('Roles', function() {
 	
 	describe('If I have permission', function() {
 		
+		
+		var accessToken;
+		
+		before(function() {
+			var admin = require('./setup.json').admin;
+
+			return login(admin.email, admin.password).then(function(token) {
+				accessToken = token;
+			})
+		})
+		
 		it('Should tell me where to find the role management API', function(done) {
 						
-			login('admin@example.com', 'password').then(function(token) {
-				return request(url)
-				.get('/api')
-				.set('Authorization', 'JWT ' + token)
-				.end(function(err, res) {
-					if (err) { throw err };
-					
-					res.body._links.should.have.property('roles');
-				});
-			}).finally(function() {
+			request(url)
+			.get('/api')
+			.set('Authorization', 'JWT ' + accessToken)
+			.end(function(err, res) {
+				if (err) { throw err; }
+								
+				res.body._links.should.have.property('roles');
 				done();
-			})
+			});
+		
 		});
+		
+		it('Should let me see existing roles', function(done) {
+			request(url)
+			.get('/api/roles')
+			.set('Authorization', 'JWT ' + accessToken)
+			.expect(200)
+			.end(function(err, res) {
+				if (err) { throw err; }
+				res.status.should.equal(200);
+				done();
+			});
+		});
+		
+		it('Should tell me where to go to create a role', function(done) {
+			request(url)
+			.get('/api/roles')
+			.set('Authorization', 'JWT ' + accessToken)
+			.expect(200)
+			.end(function(err, res) {
+				if (err) { throw err; }
+				
+				res.body._links.should.have.property('create');
+				done();
+			});			
+		})
+		
+		it('Should let me create a new role', function(done) {
+			var newRole = {
+				name: "test role"
+			}
+			
+			request(url)
+			.post('/api/roles')
+			.send(newRole)
+			.set('Authorization', 'JWT ' + accessToken)
+			.expect(200)
+			.end(function(err, res) {
+				if (err) { throw err; }
+				done();
+			});
+		})
 		
 	});
 	

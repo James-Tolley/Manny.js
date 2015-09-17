@@ -14,15 +14,15 @@ var service = {
 		return function(req, res, next) {
 			if (allowAdmin && req.user.isAdmin) {
 				next();
+			} else {
+				service.checkPermission(req.user, permissionName, req.authorizationScope)
+				.then(function(granted) {
+					if (granted) { next() }
+					else {
+						res.status(403).send('Access denied');
+					}
+				});
 			}
-			
-			service.checkPermission(req.user, permissionName, req.authorizationScope)
-			.then(function(granted) {
-				if (granted) { next() }
-				else {
-					res.status(403).send('Access denied');
-				}
-			})
 		}
 	},	
 		

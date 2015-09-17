@@ -26,9 +26,22 @@ var service = {
 		return roles.findOne({id: id});
 	},
 	
+	checkDuplicates: function(name) {
+		return name ? service.findRole(name) : Promise.resolve(null);
+	},
+	
 	updateRole: function(id, role) {
-		//todo
-		return Promise.presolve(true);
+		if (role.hasOwnProperty('name') && !role.name) {
+			return Promise.reject(new Error("Role name cannot be blank"));
+		}
+		
+		return service.checkDuplicates(role.name).then(function(r) {
+			if (r && r.id !== id) {
+				throw new Error("Role " + role.name + " already exists");
+			}
+			
+			return roles.update({id: id}, role);
+		})
 	},
 	
 	permissions: function() {
