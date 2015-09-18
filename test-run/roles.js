@@ -22,7 +22,9 @@ describe('Roles', function() {
 	describe('If I have permission', function() {
 		
 		
-		var accessToken;
+		var accessToken,
+			testRole,
+			links = {};
 		
 		before(function() {
 			var admin = require('./setup.json').admin;
@@ -41,6 +43,7 @@ describe('Roles', function() {
 				if (err) { throw err; }
 								
 				res.body._links.should.have.property('roles');
+				links.roles = res.body._links.roles;
 				done();
 			});
 		
@@ -48,7 +51,7 @@ describe('Roles', function() {
 		
 		it('Should let me see existing roles', function(done) {
 			request(url)
-			.get('/api/roles')
+			.get(links.roles.href)
 			.set('Authorization', 'JWT ' + accessToken)
 			.expect(200)
 			.end(function(err, res) {
@@ -60,13 +63,14 @@ describe('Roles', function() {
 		
 		it('Should tell me where to go to create a role', function(done) {
 			request(url)
-			.get('/api/roles')
+			.get(links.roles.href)
 			.set('Authorization', 'JWT ' + accessToken)
 			.expect(200)
 			.end(function(err, res) {
 				if (err) { throw err; }
 				
 				res.body._links.should.have.property('create');
+				links.createRole = res.body._links.create;
 				done();
 			});			
 		})
@@ -77,16 +81,42 @@ describe('Roles', function() {
 			}
 			
 			request(url)
-			.post('/api/roles')
+			.post(links.createRole.href)
 			.send(newRole)
 			.set('Authorization', 'JWT ' + accessToken)
 			.expect(200)
 			.end(function(err, res) {
 				if (err) { throw err; }
+				testRole = res.body;
 				done();
 			});
-		})
+		});
 		
+		it('Should tell me where to go to modify my new role', function() {
+			testRole.should.have.property('_links');
+			testRole._links.should.have.property('update');
+			testRole._links.should.have.property('delete');
+		});
+		
+		
+		// it('Should let me update a role', function(done) {
+		// 	
+		// 	var updatedRole = {
+		// 		name: 'role_' + Date.now() 
+		// 	}
+		// 	
+		// 	request(url)
+		// 	.put(testRole._links.update.href)
+		// 	.send(updatedRole)
+		// 	.set('Authorization', 'JWT ' + accessToken)
+		// 	.expect(200)
+		// 	.end(function(err, res) {
+		// 		if (err) { throw err; }
+		// 		res.body.id.should.equal(testRole.id);
+		// 		res.body.name.should.equal(updatedRole.name);
+		// 		done();
+		// 	});			
+		// });
 	});
 	
 	describe('If I do not have permission', function() {
