@@ -50,19 +50,7 @@ describe('Role management', function() {
 	});	
 	
 	describe('Updating a role', function() {
-		
-		var roleMock;
-		before(function() {
-			roleMock = {
-				findOne: function(opts) { 
-					return Promise.resolve({id: opts.id || 1, name: opts.name || 'role'}); 
-				},
-				update: sinon.stub().returns(Promise.resolve({id: 1, name: 'role'}))
-			}
-			
-			service.__set__("roles", roleMock);
-		})
-		
+				
 		it('Cannot be updated to a blank name', function() {
 			return service.updateRole(1, {name: ''})
 			.then(function() {
@@ -73,6 +61,13 @@ describe('Role management', function() {
 		});
 		
 		it('Cannot be updated to a duplicate name', function() {
+			var roleMock = {
+				findOne: function(opts) { 
+					return Promise.resolve({id: opts.id || 1, name: opts.name || 'role'}); 
+				}
+			}
+			service.__set__("roles", roleMock);
+						
 			return service.updateRole(2, {name: 'role'})
 			.then(function() {
 				throw new Error("Should have failed")
@@ -82,12 +77,23 @@ describe('Role management', function() {
 		});
 		
 		it('Can update a role name', function() {
+		
+			var fakeRole = {id: 1, name: 'role'};
+			fakeRole.save = sinon.stub().returns(Promise.resolve(fakeRole));
+			var roleMock = {
+				findOne: function(opts) { 
+					return Promise.resolve(fakeRole); 
+				}
+			}
+			
+			service.__set__("roles", roleMock);
+				
 			return service.updateRole(1, {name: 'blah'})
 			.then(function(role) {
-				roleMock.update.calledOnce.should.be.true();
+				fakeRole.save.calledOnce.should.be.true();
+				role.name.should.equal('blah');
 			});
-		});
-		
+		});		
 	});
 	
 	describe('Deleting a role', function() {

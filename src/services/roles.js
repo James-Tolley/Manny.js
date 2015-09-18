@@ -19,28 +19,29 @@ var service = {
 	},
 	
 	findRole: function(name) {
-		return roles.findOne({name: name});
+		return name ? roles.findOne({name: name}) : Promise.resolve(null);
 	},
 	
 	loadRole: function(id) {
 		return roles.findOne({id: id});
 	},
-	
-	checkDuplicates: function(name) {
-		return name ? service.findRole(name) : Promise.resolve(null);
-	},
-	
-	updateRole: function(id, role) {
-		if (role.hasOwnProperty('name') && !role.name) {
+		
+	updateRole: function(id, model) {
+				
+		if (model.hasOwnProperty('name') && !model.name) {
 			return Promise.reject(new Error("Role name cannot be blank"));
 		}
 		
-		return service.checkDuplicates(role.name).then(function(r) {
-			if (r && r.id !== id) {
-				throw new Error("Role " + role.name + " already exists");
+		return service.findRole(model.name).then(function(r) {
+			if (r && (r.id !== id)) {
+				throw new Error("Role " + model.name + " already exists");
 			}
-			
-			return roles.update({id: id}, role);
+	
+			return service.loadRole(id);			
+
+		}).then(function(role) {
+			role.name = model.name || role.name;
+			return role.save();
 		})
 	},
 	

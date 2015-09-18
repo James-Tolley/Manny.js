@@ -99,24 +99,24 @@ describe('Roles', function() {
 		});
 		
 		
-		// it('Should let me update a role', function(done) {
-		// 	
-		// 	var updatedRole = {
-		// 		name: 'role_' + Date.now() 
-		// 	}
-		// 	
-		// 	request(url)
-		// 	.put(testRole._links.update.href)
-		// 	.send(updatedRole)
-		// 	.set('Authorization', 'JWT ' + accessToken)
-		// 	.expect(200)
-		// 	.end(function(err, res) {
-		// 		if (err) { throw err; }
-		// 		res.body.id.should.equal(testRole.id);
-		// 		res.body.name.should.equal(updatedRole.name);
-		// 		done();
-		// 	});			
-		// });
+		it('Should let me update a role', function(done) {
+			
+			var updatedRole = {
+				name: 'role_' + Date.now() 
+			}
+			
+			request(url)
+			.put(testRole._links.update.href)
+			.send(updatedRole)
+			.set('Authorization', 'JWT ' + accessToken)
+			.expect(200)
+			.end(function(err, res) {
+				if (err) { throw err; }
+				res.body.id.should.equal(testRole.id);
+				res.body.name.should.equal(updatedRole.name);
+				done();
+			});			
+		});
 	});
 	
 	describe('If I do not have permission', function() {

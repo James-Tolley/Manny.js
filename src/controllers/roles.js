@@ -78,13 +78,13 @@ function RolesController(app, root) {
 	 * @apiName UpdateRole
 	 * @apiGroup Role
 	 * 
-	 * @apiParam {string} New name of role
+	 * @apiParam {string} name New name of role
 	 */	
 	self.updateRole = function(req, res) {
-		return res.json(501, {
-			id: req.params.id,
-			update: req.body
-		});
+		var id = req.params.id;
+		roleService.updateRole(id, req.body).then(function(role) {
+			return res.json(role);
+		})
 	}
 	
 	/**
