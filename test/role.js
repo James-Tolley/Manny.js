@@ -42,6 +42,7 @@ describe('Role management', function() {
 			
 			service.__set__("roles", roleMock);			
 			return service.createRole('role').then(function(role) {
+				roleMock.create.calledOnce.should.be.true();
 				should.exist(role);
 			});
 		});
@@ -50,14 +51,13 @@ describe('Role management', function() {
 	
 	describe('Updating a role', function() {
 		
+		var roleMock;
 		before(function() {
-			var roleMock = {
+			roleMock = {
 				findOne: function(opts) { 
 					return Promise.resolve({id: opts.id || 1, name: opts.name || 'role'}); 
 				},
-				update: function(lookup, update) { 
-					return Promise.resolve({id: lookup.id || 1, name: update.name || lookup.name || 'role'}); 
-				}
+				update: sinon.stub().returns(Promise.resolve({id: 1, name: 'role'}))
 			}
 			
 			service.__set__("roles", roleMock);
@@ -84,7 +84,7 @@ describe('Role management', function() {
 		it('Can update a role name', function() {
 			return service.updateRole(1, {name: 'blah'})
 			.then(function(role) {
-				role.name.should.equal('blah');
+				roleMock.update.calledOnce.should.be.true();
 			});
 		});
 		
@@ -112,12 +112,13 @@ describe('Role management', function() {
 				findOne: function(opts) { 
 					return Promise.resolve({id: opts.id || 1, name: opts.name || 'role'}); 
 				},
-				destroy: sinon.stub.returns(Promise.resolve(true))
+				destroy: sinon.stub().returns(Promise.resolve(true))
 			}
 			
 			service.__set__("roles", roleMock);
-			return service.deleteRole(1).then(function() {
-				true.should.equal(roleMock.destroy.calledOnce);
+			return service.deleteRole(1).then(function() {		
+				roleMock.destroy.calledOnce.should.be.true();
+				
 			})
 		})
 	});
@@ -150,11 +151,12 @@ describe('Permission management', function() {
 			findOne : sinon.stub().returns(Promise.resolve({id: 1, name: 'permission one'}))
 		};
 
+		var save = sinon.stub().returns(Promise.resolve(true)); 
 		var rolePromise = Promise.resolve({
 			id: 1, 
 			name: 'role one', 
 			permissions: [],
-			save: function() { return Promise.resolve(true);}
+			save: save
 		});
 		rolePromise.populate = function(name) {
 			return this;
@@ -166,7 +168,9 @@ describe('Permission management', function() {
 		service.__set__('roles', roleMock);
 		service.__set__('permissions', permissionMock);
 		
-		return service.grantPermission('role one', 'permission one');
+		return service.grantPermission('role one', 'permission one').then(function() {
+			save.calledOnce.should.be.true();
+		})
 	});
 	
 	it('Cannot add a global permission to a role containing scopable permissions', function() {
