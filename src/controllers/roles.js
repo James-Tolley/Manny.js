@@ -27,7 +27,7 @@ function RolesController(app, root) {
 	 * @apiName GetRoles
 	 * @apiGroup Role
 	 */	
-	self.getRoles = function(req, res) {
+	self.getRoles = function(req, res, next) {
 		
 		roleService.roles().then(function(roles) {
 			var resource = new hal.Resource({}, routes.roles);
@@ -40,6 +40,8 @@ function RolesController(app, root) {
 			resource.embed("roles", embedded);
 		
 			return res.json(resource);
+		}).catch(function(e) {
+			return next(e);
 		});
 		
 	}
@@ -51,7 +53,7 @@ function RolesController(app, root) {
 	 * 
 	 * @apiParam {string} name Name of new role
 	 */
-	self.createRole = function(req, res) {
+	self.createRole = function(req, res, next) {
 		roleService.createRole(req.body.name || req.body).then(function(role) {
 			var url = routes.role.replace(':id', role.id);
 			var resource = new hal.Resource(role, url);
@@ -59,6 +61,8 @@ function RolesController(app, root) {
 			resource.link('update', url);
 			
 			return res.json(resource);
+		}).catch(function(e) {
+			return next(e);
 		});
 	}
 	
@@ -69,7 +73,7 @@ function RolesController(app, root) {
 	 * 
 	 * @apiParam {number} id Role Id
 	 */	
-	self.getRole = function(req, res) {
+	self.getRole = function(req, res, next) {
 		return res.json(501, req.params.id)
 	}
 	
@@ -80,11 +84,13 @@ function RolesController(app, root) {
 	 * 
 	 * @apiParam {string} name New name of role
 	 */	
-	self.updateRole = function(req, res) {
+	self.updateRole = function(req, res, next) {
 		var id = req.params.id;
 		roleService.updateRole(id, req.body).then(function(role) {
 			return res.json(role);
-		})
+		}).catch(function(e) {
+			next(e);
+		});
 	}
 	
 	/**
@@ -92,7 +98,7 @@ function RolesController(app, root) {
 	 * @apiName DeleteRole
 	 * @apiGroup Role
 	 */		
-	self.deleteRole = function(req, res) {
+	self.deleteRole = function(req, res, next) {
 		return res.json(501, req.params.id);
 	}
 	

@@ -5,7 +5,8 @@
 var 
 	orm = require('../collections/orm'),
 	Promise = require('bluebird'),
-	_ = require('lodash');
+	_ = require('lodash'),
+	ServiceError = require('./ServiceError');
 
 var 
 	users = orm.collections.user,
@@ -29,12 +30,12 @@ var service = {
 	updateRole: function(id, model) {
 				
 		if (model.hasOwnProperty('name') && !model.name) {
-			return Promise.reject(new Error("Role name cannot be blank"));
+			return Promise.reject(new ServiceError("Role name cannot be blank"));
 		}
 		
 		return service.findRole(model.name).then(function(r) {
-			if (r && (r.id !== id)) {
-				throw new Error("Role " + model.name + " already exists");
+			if (r && (r.id != id)) {
+				throw new ServiceError("Role " + model.name + " already exists");
 			}
 	
 			return service.loadRole(id);			

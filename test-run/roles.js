@@ -21,7 +21,6 @@ describe('Roles', function() {
 	
 	describe('If I have permission', function() {
 		
-		
 		var accessToken,
 			testRole,
 			links = {};
@@ -34,88 +33,117 @@ describe('Roles', function() {
 			})
 		})
 		
-		it('Should tell me where to find the role management API', function(done) {
-						
-			request(url)
-			.get('/api')
-			.set('Authorization', 'JWT ' + accessToken)
-			.end(function(err, res) {
-				if (err) { throw err; }
-								
-				res.body._links.should.have.property('roles');
-				links.roles = res.body._links.roles;
-				done();
-			});
+		describe('Discoverabilty', function() {
 		
+
+		
+			it('Should tell me where to find the role management API', function(done) {
+							
+				request(url)
+				.get('/api')
+				.set('Authorization', 'JWT ' + accessToken)
+				.end(function(err, res) {
+					if (err) { throw err; }
+									
+					res.body._links.should.have.property('roles');
+					links.roles = res.body._links.roles;
+					done();
+				});
+			
+			});
+			
+			it('Should let me see existing roles', function(done) {
+				request(url)
+				.get(links.roles.href)
+				.set('Authorization', 'JWT ' + accessToken)
+				.expect(200)
+				.end(function(err, res) {
+					if (err) { throw err; }
+					res.status.should.equal(200);
+					done();
+				});
+			});
 		});
 		
-		it('Should let me see existing roles', function(done) {
-			request(url)
-			.get(links.roles.href)
-			.set('Authorization', 'JWT ' + accessToken)
-			.expect(200)
-			.end(function(err, res) {
-				if (err) { throw err; }
-				res.status.should.equal(200);
-				done();
-			});
-		});
+		describe('Role creation', function() {
+			
 		
-		it('Should tell me where to go to create a role', function(done) {
-			request(url)
-			.get(links.roles.href)
-			.set('Authorization', 'JWT ' + accessToken)
-			.expect(200)
-			.end(function(err, res) {
-				if (err) { throw err; }
+			it('Should tell me where to go to create a role', function(done) {
+				request(url)
+				.get(links.roles.href)
+				.set('Authorization', 'JWT ' + accessToken)
+				.expect(200)
+				.end(function(err, res) {
+					if (err) { throw err; }
+					
+					res.body._links.should.have.property('create');
+					links.createRole = res.body._links.create;
+					done();
+				});			
+			})
+			
+			it('Should let me create a new role', function(done) {
+				var newRole = {
+					name: 'role_' + Date.now()
+				}
 				
-				res.body._links.should.have.property('create');
-				links.createRole = res.body._links.create;
-				done();
-			});			
-		})
-		
-		it('Should let me create a new role', function(done) {
-			var newRole = {
-				name: 'role_' + Date.now()
-			}
-			
-			request(url)
-			.post(links.createRole.href)
-			.send(newRole)
-			.set('Authorization', 'JWT ' + accessToken)
-			.expect(200)
-			.end(function(err, res) {
-				if (err) { throw err; }
-				testRole = res.body;
-				done();
+				request(url)
+				.post(links.createRole.href)
+				.send(newRole)
+				.set('Authorization', 'JWT ' + accessToken)
+				.expect(200)
+				.end(function(err, res) {
+					if (err) { throw err; }
+					testRole = res.body;
+					done();
+				});
 			});
+			
+			it('Should tell me where to go to modify my new role', function() {
+				testRole.should.have.property('_links');
+				testRole._links.should.have.property('update');
+				testRole._links.should.have.property('delete');
+			});
+			
 		});
 		
-		it('Should tell me where to go to modify my new role', function() {
-			testRole.should.have.property('_links');
-			testRole._links.should.have.property('update');
-			testRole._links.should.have.property('delete');
-		});
 		
-		
-		it('Should let me update a role', function(done) {
+		describe('Updating a role', function() {
 			
-			var updatedRole = {
-				name: 'role_' + Date.now() 
-			}
+			it('Should let me update a role', function(done) {
+				
+				var updatedRole = {
+					name: 'role_' + Date.now() 
+				}
+				
+				request(url)
+				.put(testRole._links.update.href)
+				.send(updatedRole)
+				.set('Authorization', 'JWT ' + accessToken)
+				.expect(200)
+				.end(function(err, res) {
+					if (err) { throw err; }
+					res.body.id.should.equal(testRole.id);
+					res.body.name.should.equal(updatedRole.name);
+					done();
+				});			
+			});
 			
-			request(url)
-			.put(testRole._links.update.href)
-			.send(updatedRole)
-			.set('Authorization', 'JWT ' + accessToken)
-			.expect(200)
-			.end(function(err, res) {
-				if (err) { throw err; }
-				res.body.id.should.equal(testRole.id);
-				res.body.name.should.equal(updatedRole.name);
-				done();
-			});			
+			it('Should give me a bad request if my update model is wrong', function(done) {
+				var updatedRole = {
+					name: ''
+				}
+				
+				request(url)
+				.put(testRole._links.update.href)
+				.send(updatedRole)
+				.set('Authorization', 'JWT ' + accessToken)
+				.expect(400)
+				.end(function(err, res) {
+					if (err) { throw err; }
+					done();
+				});					
+			})
 		});
 	});
 	
