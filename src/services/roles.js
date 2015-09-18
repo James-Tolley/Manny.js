@@ -53,9 +53,10 @@ var service = {
 	 * @returns Promise which will resolve with an updated role model
 	 * 
 	 * @throws {ServiceError} Name was passed but empty, or another role with that name already exists
+	 * @throws {ServiceError} Role id does not exist
 	 */
 	updateRole: function(id, model) {
-				
+		
 		if (model.hasOwnProperty('name') && !model.name) {
 			return Promise.reject(new ServiceError("Role name cannot be blank"));
 		}
@@ -64,10 +65,13 @@ var service = {
 			if (r && (r.id != id)) {
 				throw new ServiceError("Role " + model.name + " already exists");
 			}
-	
+				
 			return service.loadRole(id);			
 
 		}).then(function(role) {
+			if (!role) { 
+				throw new ServiceError("Role does not exist"); 
+			}
 			role.name = model.name || role.name;
 			return role.save();
 		})

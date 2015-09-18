@@ -35,8 +35,6 @@ describe('Roles', function() {
 		
 		describe('Discoverabilty', function() {
 		
-
-		
 			it('Should tell me where to find the role management API', function(done) {
 							
 				request(url)
@@ -81,6 +79,22 @@ describe('Roles', function() {
 					done();
 				});			
 			})
+			
+			it('Should respond respond with BadRequest if my create model is invalid', function(done) {
+				var newRole = {
+					name: ''
+				}
+				
+				request(url)
+				.post(links.createRole.href)
+				.send(newRole)
+				.set('Authorization', 'JWT ' + accessToken)
+				.expect(400)
+				.end(function(err, res) {
+					res.status.should.equal(400);
+					done();
+				});					
+			});
 			
 			it('Should let me create a new role', function(done) {
 				var newRole = {
@@ -129,7 +143,7 @@ describe('Roles', function() {
 				});			
 			});
 			
-			it('Should give me a bad request if my update model is wrong', function(done) {
+			it('Should respond with BadRequest if my update model is wrong', function(done) {
 				var updatedRole = {
 					name: ''
 				}
@@ -143,8 +157,31 @@ describe('Roles', function() {
 					if (err) { throw err; }
 					done();
 				});					
+			});
+			
+			it('Should respond with BadRequest if I attempt to update a non-existant role', function(done) {
+				var updatedRole = {
+					name: 'role_' + Date.now() 
+				}
+				
+				request(url)
+				.put(links.roles.href + '/0')
+				.send(updatedRole)
+				.set('Authorization', 'JWT ' + accessToken)
+				.expect(400)
+				.end(function(err, res) {
+					if (err) { throw err; }
+					done();
+				});					
 			})
+			
 		});
+		
+		// describe('Deleting a role', function() {
+			
+			
+			
+		// });
 	});
 	
 	describe('If I do not have permission', function() {

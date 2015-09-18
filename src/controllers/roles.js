@@ -85,7 +85,12 @@ function RolesController(app, root) {
 	 * @apiParam {string} name New name of role
 	 */	
 	self.updateRole = function(req, res, next) {
-		var id = req.params.id;
+		var id = parseInt(req.params.id);
+		
+		if (!id || isNaN(id)) {
+			return res.json(400, "Invalid role Id");
+		}
+		
 		roleService.updateRole(id, req.body).then(function(role) {
 			return res.json(role);
 		}).catch(function(e) {
