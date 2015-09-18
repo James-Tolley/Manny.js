@@ -89,6 +89,38 @@ describe('Role management', function() {
 		});
 		
 	});
+	
+	describe('Deleting a role', function() {
+		
+		it('Cannot delete a non-existent role', function() {
+			var roleMock = {
+				findOne: function(opts) { 
+					return Promise.resolve(null); 
+				},
+			}
+			
+			service.__set__("roles", roleMock);
+			return service.deleteRole(1).then(function() {
+				throw new Error("Should have failed");
+			}).catch(function(err) {
+				err.message.should.match(/not found/i);
+			});	
+		});
+		
+		it('Can delete a role', function() {
+			var roleMock = {
+				findOne: function(opts) { 
+					return Promise.resolve({id: opts.id || 1, name: opts.name || 'role'}); 
+				},
+				destroy: sinon.stub.returns(Promise.resolve(true))
+			}
+			
+			service.__set__("roles", roleMock);
+			return service.deleteRole(1).then(function() {
+				true.should.equal(roleMock.destroy.calledOnce);
+			})
+		})
+	});
 });
 
 describe('Permission management', function() {

@@ -12,6 +12,9 @@
     "type": "git",
     "url": "https://bitbucket.org/JamesTolley/skynet.git"
   },
+  "apidoc": {
+    "title": "Skynet Api Documentation"
+  },
   "dependencies": {
     "bluebird": "^2.9.34",
     "body-parser": "~1.0.1",

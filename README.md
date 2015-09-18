@@ -28,6 +28,19 @@ Application provides login via username and password which it exchanges for a Js
  - /test - Mocha unit tests
  - /test-run - Mocha integration tests
   
+## Documentation ##
+
+Api documentation can be manually generated using apidoc
+
+If not already installed:
+```
+npm install apidoc -g
+```
+
+then:
+```
+apidoc -i src/ -o apidoc/
+```
 
 ## Configuration ##
 
