@@ -73,7 +73,7 @@ describe('Roles', function() {
 		
 		it('Should let me create a new role', function(done) {
 			var newRole = {
-				name: "test role"
+				name: 'role_' + Date.now()
 			}
 			
 			request(url)
