@@ -10,7 +10,7 @@ describe('Authentication', function() {
 	
 	describe('Account creation', function() {
 		
-		it('Should let me register an account', function(done) {
+		it('Should let me register an account', function() {
 			var 
 				usersMock = {
 					findOne: sinon.stub().returns(Promise.resolve(null)),
@@ -19,17 +19,16 @@ describe('Authentication', function() {
 			
 			service.__set__("users", usersMock);
 			
-			service.register({
+			return service.register({
 				email: 'test@example.com',
 				password: 'secret',
 				confirmPassword: 'secret'
 			}).then(function(user) {
 				should.exist(user);
-				done();
 			})
 		});
 		
-		it('Should hash and salt the user password', function(done) {
+		it('Should hash and salt the user password', function() {
 			var 
 				usersMock = {
 					findOne: sinon.stub().returns(Promise.resolve(null)),
@@ -38,18 +37,17 @@ describe('Authentication', function() {
 			
 			service.__set__("users", usersMock);
 			
-			service.register({
+			return service.register({
 				email: 'test@example.com',
 				password: 'secret',
 				confirmPassword: 'secret'
 			}).then(function(user) {
 				user.password.should.not.equal('secret');
 				should.exist(user.salt);
-				done();
 			})			
 		})
 	
-		it('Should reject duplicate email addresses', function(done) {
+		it('Should reject duplicate email addresses', function() {
 			var 
 				usersMock = {
 					findOne: sinon.stub().returns(Promise.resolve({
@@ -59,21 +57,19 @@ describe('Authentication', function() {
 			
 			service.__set__("users", usersMock);
 			
-			service.register({
+			return service.register({
 				email: 'test@example.com',
 				password: 'secret',
 				confirmPassword: 'secret'
 			}).then(function(user) {
-				should.not.exist(user);
-				done();
+				throw new Error("Failed")
 			}).catch(function(err) {
-				err.should.match(/email/i);
-				done();
-			});	
+				err.message.should.match(/email/i);
+			})
 		});
 		
 			
-		it('Should reject missing email', function(done) {
+		it('Should reject missing email', function() {
 			var usersMock = {
 					findOne: sinon.stub().returns(Promise.resolve(null)),
 					create: sinon.stub().returnsArg(0)
@@ -81,20 +77,18 @@ describe('Authentication', function() {
 			
 			service.__set__("users", usersMock);
 			
-			service.register({
+			return service.register({
 				email: '',
 				password: 'secret',
 				confirmPassword: 'secret'
 			}).then(function(user) {
-				should.not.exist(user);
-				done();
+				throw new Error("Failed");
 			}).catch(function(err) {
-				err.should.match(/email/i);
-				done();
+				err.message.should.match(/email/i);
 			});	
 		});
 		
-		it('Should reject an invalid email', function(done) {
+		it('Should reject an invalid email', function() {
 			var usersMock = {
 					findOne: sinon.stub().returns(Promise.resolve(null)),
 					create: sinon.stub().returnsArg(0)
@@ -102,20 +96,18 @@ describe('Authentication', function() {
 			
 			service.__set__("users", usersMock);
 			
-			service.register({
+			return service.register({
 				email: 'a@b@example.com',
 				password: 'secret',
 				confirmPassword: 'secret'
 			}).then(function(user) {
-				should.not.exist(user);
-				done();
+				throw new Error("Failed");
 			}).catch(function(err) {
-				err.should.match(/email/i);
-				done();
+				err.message.should.match(/email/i);
 			});	
 		});		
 				
-		it('Should reject missing password', function(done) {
+		it('Should reject missing password', function() {
 			var usersMock = {
 					findOne: sinon.stub().returns(Promise.resolve(null)),
 					create: sinon.stub().returnsArg(0)
@@ -123,19 +115,17 @@ describe('Authentication', function() {
 			
 			service.__set__("users", usersMock);
 			
-			service.register({
+			return service.register({
 				email: 'test@example.com',
 				confirmPassword: 'secret'
 			}).then(function(user) {
-				should.not.exist(user);
-				done();
+				throw new Error("Failed");
 			}).catch(function(err) {
-				err.should.match(/password/i);
-				done();
+				err.message.should.match(/password/i);
 			});	
 		});	
 		
-		it('Should reject if password and confirmation password do not match', function(done) {
+		it('Should reject if password and confirmation password do not match', function() {
 			var usersMock = {
 					findOne: sinon.stub().returns(Promise.resolve(null)),
 					create: sinon.stub().returnsArg(0)
@@ -143,16 +133,14 @@ describe('Authentication', function() {
 			
 			service.__set__("users", usersMock);
 			
-			service.register({
+			return service.register({
 				email: 'test@example.com',
 				password: 'password',
 				confirmPassword: 'secret'
 			}).then(function(user) {
-				should.not.exist(user);
-				done();
+				throw new Error("Failed");
 			}).catch(function(err) {
-				err.should.match(/password/i);
-				done();
+				err.message.should.match(/password/i);
 			});	
 		});	
 		
@@ -175,31 +163,23 @@ describe('Authentication', function() {
 			service.__set__("users", usersMock);			
 		});
 		
-		it('Should accept valid credentials', function(done) {
+		it('Should accept valid credentials', function() {
 			
-			service.login('test@example.com', 'secret')
+			return service.login('test@example.com', 'secret')
 			.then(function(user) {
 				user.email.should.match('test@example.com');
-				done();
-			}).catch(function(err) {
-				should.not.exist(err);
-				done();
-			})
+			});
 		});		
 		
-		it('Should reject invalid password', function(done) {
+		it('Should reject invalid password', function() {
 								
-			service.login('test@example.com', 'wrong-password')
+			return service.login('test@example.com', 'wrong-password')
 			.then(function(user) {
 				should.not.exist(user);
-				done();
-			}).catch(function(err) {
-				err.should.match(/invalid login/i)
-				done();
-			})
+			});
 		});
 		
-		it('Should reject invalid email address', function(done) {
+		it('Should reject invalid email address', function() {
 						
 			var usersMock = {
 					findOne: sinon.stub().returns(Promise.resolve(null))
@@ -207,14 +187,10 @@ describe('Authentication', function() {
 			
 			service.__set__("users", usersMock);
 											
-			service.login('does-not-exist@example.com', 'secret')
+			return service.login('does-not-exist@example.com', 'secret')
 			.then(function(user) {
 				should.not.exist(user);
-				done();
-			}).catch(function(err) {
-				err.should.match(/invalid login/i)
-				done();
-			})
+			});
 		});							
 		
 	})
