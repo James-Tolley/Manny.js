@@ -16,6 +16,7 @@ Application provides login via username and password which it exchanges for a Js
 
  - server.js - Main application file
  - routes.js - Api route initialization
+ - initialConfiguration - Initial setup
  - /node_modules - Dependencies
  - /config
     - default.js - Default configuration
@@ -27,10 +28,23 @@ Application provides login via username and password which it exchanges for a Js
  - /test - Mocha unit tests
  - /test-run - Mocha integration tests
   
+## Documentation ##
+
+Api documentation can be manually generated using apidoc
+
+If not already installed:
+```
+npm install apidoc -g
+```
+
+then:
+```
+apidoc -i src/ -o apidoc/
+```
 
 ## Configuration ##
 
-Configuration is in `/config/default.json`
+Configuration file is in `/config/default.json`
 ```
 {
     // application server configuration*
@@ -65,6 +79,27 @@ Configuration is in `/config/default.json`
 }
 ```
 
+If the application has never been run before, it requires an admin account to be specified before it will boot. 
+This can either be specified via answering the command line prompts, or provided via a json file like so:
+
+```
+> node server.js --setup=./mysetup.json
+Application has not been configured yet. Performing initial setup
+Using configuration file
+Listening on port 1337
+```
+
+The format of the file is
+
+```
+{
+	"admin": {
+		"email": "email@example.com",
+		"password": "password"
+	}
+}
+```
+
 ## Dependencies ##
 
 All dependencies are in package.json and can be installed with `npm install`
@@ -81,7 +116,9 @@ Skynet depends on the following packages:
  - [waterline](https://github.com/balderdashy/waterline)
  - [sails-memory](https://github.com/balderdashy/sails-memory)
  - [lodash](https://lodash.com/)
-
+ - [hal](https://github.com/naholyr/js-hal)
+ - [read](https://github.com/isaacs/read)
+ 
 ## Testing ##
 
 Unit tests and integration tests are written in mocha. 
@@ -92,7 +129,13 @@ Unit tests - run
 > mocha
 ```
 
-Integration tests - start the application, then run:
+Integration tests - start the application using  ./test-run/setup.json for initial configuration
+
+```
+> node server.js --setup=./test-run/setup.json
+```
+
+then in a seperate console run:
 
 ```
 > mocha test-run

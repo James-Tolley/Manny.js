@@ -9,7 +9,6 @@ orm.initialize()
 	throw e;
 });
 
-
 function boot() {
 	
 	var 
@@ -23,8 +22,16 @@ function boot() {
 	app.use(bodyParser.json());	
 	app.use(passport.initialize());
 	
+	
 	require('./routes')(app, '/api');
-
+	
+	app.use(function(err, req, res, next) {
+		if (err.name == 'ServiceError') {
+			return res.json(400, { message: err.message } );
+		}
+		return next(err);
+	});
+	
 	var port = config.get('server.port');
 	app.listen(port);
 	console.log('Using configuration: ' + app.settings.env);

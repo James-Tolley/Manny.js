@@ -15,7 +15,7 @@ function AuthenticationController(app, root) {
 			
 	self.app = app;
 
-	self.token = function(req, res) {
+	self.token = function(req, res, next) {
 		if (!req.user) {
 			return res.json(401, "Login failed");
 		}
@@ -27,22 +27,24 @@ function AuthenticationController(app, root) {
 				email: req.user.email,
 				access_token: token
 			});	
+		}).catch(function(e) {
+			return next(e);
 		});
 	}
 
-	self.register = function(req, res) {
+	self.register = function(req, res, next) {
 
 		authService.register(req.body).then(function(user) {
 			var resource = new hal.Resource(user, routes.me);
 			resource.link('login', routes.login);
 
 			return res.json(resource);
-		}).catch(function(err) {
-			return res.json(400, {message: err.message});
-		})
+		}).catch(function(e) {
+			return next(e);
+		});
 	}
 
-	self.me = function(req, res) {
+	self.me = function(req, res, next) {
 		if (!req.user) {
 			return res.json(400, 'User not found');
 		}

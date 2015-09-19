@@ -12,6 +12,9 @@
     "type": "git",
     "url": "https://bitbucket.org/JamesTolley/skynet.git"
   },
+  "apidoc": {
+    "title": "Skynet Api Documentation"
+  },
   "dependencies": {
     "bluebird": "^2.9.34",
     "body-parser": "~1.0.1",
@@ -24,6 +27,7 @@
     "passport": "^0.2.2",
     "passport-http": "^0.3.0",
     "passport-jwt": "^1.1.0",
+    "read": "^1.0.7",
     "sails-memory": "^0.10.5",
     "waterline": "^0.10.26"
   },

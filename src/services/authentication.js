@@ -5,7 +5,8 @@ var config = require('config'),
 	JwtStrategy = require('passport-jwt').Strategy,
 	jwt = require('jsonwebtoken'),
 	crypto = require('crypto'),
-	orm = require('../collections/orm');
+	orm = require('../collections/orm'),
+	ServiceError = require('./ServiceError');
 
 var users = orm.collections.user;
 
@@ -32,15 +33,15 @@ var service = {
 		
 	validateNewUserModel: function(model) {
 
-		if (!model.email) { return Promise.reject(new Error("Email address is required")); }
-		if (!service.validEmail(model.email)) { return Promise.reject(new Error("Email address is not valid")); }
-		if (!model.password) { return Promise.reject(new Error("Password is required")); }
-		if (!model.confirmPassword) { return Promise.reject(new Error("Password confirmation is required")); }
-		if (model.password !== model.confirmPassword) { return Promise.reject(new Error("Passwords do not match")); }
+		if (!model.email) { return Promise.reject(new ServiceError("Email address is required")); }
+		if (!service.validEmail(model.email)) { return Promise.reject(new ServiceError("Email address is not valid")); }
+		if (!model.password) { return Promise.reject(new ServiceError("Password is required")); }
+		if (!model.confirmPassword) { return Promise.reject(new ServiceError("Password confirmation is required")); }
+		if (model.password !== model.confirmPassword) { return Promise.reject(new ServiceError("Passwords do not match")); }
 		 		
 		return users.findOne({email: model.email})
 		.then(function(user) {
-			if (user) { throw new Error("Email address is already in use");	}
+			if (user) { throw new ServiceError("Email address is already in use");	}
 		});
 
 	},
@@ -86,7 +87,7 @@ var service = {
 	 * todo: Move this out of authentication
 	 */
 	setAdmin: function(user, isAdmin) {
-		users.update({id: user.id}, {isAdmin: isAdmin});
+		return users.update({id: user.id}, {isAdmin: isAdmin});
 	},
 	
 	/**
