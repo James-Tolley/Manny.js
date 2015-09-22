@@ -3,6 +3,7 @@ var
 	Promise = require('bluebird'),
 	_ = require('lodash'),
 	crypto = require('crypto'),
+	roleService = require('./roles'),
 	ServiceError = require('./ServiceError');
 	
 
@@ -57,7 +58,7 @@ var service = {
 	/**
 	 * Create a new user.
 	 * @returns a promise which resolves with the newly created user
-	 * @throws an Error with relevant message if the model does not pass validation
+	 * @throws {ServiceErorr} Model does not pass validation
 	 */
 	createUser: function(model) {
 
@@ -74,13 +75,67 @@ var service = {
 		});
 	},	
 	
-	
 	/**
 	 * Sets a user as system admin
 	 */
 	setAdmin: function(user, isAdmin) {
 		return users.update({id: user.id}, {isAdmin: isAdmin});
 	},		
+	
+	/**
+	 * Assign a role to a user. 
+	 * @param user User to assign role to
+	 * @param {string} roleName name of role to assign
+	 * @param {string} scope if set, limit role to this scope. 
+	 * 
+	 * @throws {ServiceError} User does not exist
+	 * @throws {ServiceError} Role does not exist
+	 * 
+	 * @returns User and updated roles
+	 */
+	assignRoleToUser: function(userId, roleName, scope) {
+		
+		var userLoad = service.loadUser(userId).populate('roles');
+		var roleLoad = roleService.findRole(roleName);
+		
+		return Promise.all([userLoad, roleLoad])
+		.spread(function(user, role) {
+			if (!user) { throw new ServiceError("User does not exist"); }
+			if (!role) { throw new ServiceError("Role does not exist"); }
+			
+			var existing = _.find(user.roles, function(userRole) {
+				userRole.role === role.id;
+			});
+			
+			if (existing && existing.scope != scope) {
+				user.roles.push({
+					user: user,
+					role: role,
+					scope: scope
+				})
+				return user.save();
+			} else {
+				return Promise.resolve(user);
+			}
+		});
+	},
+	
+	/**
+	 * Remove a role from a user.
+	 * 
+	 * @param user User to assign role to
+	 * @param {string} roleName name of role to remove
+	 * @param {string} scope Scope to remove the role from.	
+	 *  
+	 * @throws {ServiceError} User does not exist
+	 * @throws {ServiceError} Role does not exist
+	 * @throws {ServiceErorr} User does not have role at the specified scope
+	 * 
+	 * @returns Updated roles collection
+	 */	
+	removeRoleFromUser: function(user, roleName, scope) {
+		
+	},
 	
 }
 

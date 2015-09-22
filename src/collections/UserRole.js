@@ -10,7 +10,8 @@ var UserRole = Waterline.Collection.extend({
 			via: 'roles'
 		},
 		role: {
-			collection: 'role',
+			model: 'role',
+			via: 'userswithrole'
 		}
 	}
 });
