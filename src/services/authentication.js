@@ -4,77 +4,24 @@ var config = require('config'),
 	BasicStrategy = require('passport-http').BasicStrategy,
 	JwtStrategy = require('passport-jwt').Strategy,
 	jwt = require('jsonwebtoken'),
-	crypto = require('crypto'),
-	orm = require('../collections/orm'),
+	userService = require('./users'),
 	ServiceError = require('./ServiceError');
 
-var users = orm.collections.user;
+function checkPassword(user, password) {
+	var hash = userService.hashPassword(password, user.salt);
+	return hash === user.password;
+}
 
 var service = {
 	
-	generateSalt: function() {
-		return crypto.randomBytes(16).toString('hex');	
-	},
-
-	hashPassword: function(password, salt) {
-		return crypto.pbkdf2Sync(password, salt, 4096, 256).toString('hex');	
-	},
-
-	checkPassword: function(user, password) {
-		var hash = service.hashPassword(password, user.salt);
-		return hash === user.password;
-	},
-	
-	validEmail: function(email) {
-		//http://stackoverflow.com/questions/46155/validate-email-address-in-javascript
-		var regex = /^[a-z0-9!#$%&'*+\/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+\/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?$/i;
-		return regex.test(email);	
-	},
-		
-	validateNewUserModel: function(model) {
-
-		if (!model.email) { return Promise.reject(new ServiceError("Email address is required")); }
-		if (!service.validEmail(model.email)) { return Promise.reject(new ServiceError("Email address is not valid")); }
-		if (!model.password) { return Promise.reject(new ServiceError("Password is required")); }
-		if (!model.confirmPassword) { return Promise.reject(new ServiceError("Password confirmation is required")); }
-		if (model.password !== model.confirmPassword) { return Promise.reject(new ServiceError("Passwords do not match")); }
-		 		
-		return users.findOne({email: model.email})
-		.then(function(user) {
-			if (user) { throw new ServiceError("Email address is already in use");	}
-		});
-
-	},
-
-	/**
-	 * Register a new user.
-	 * @returns a promise which resolves with the newly created user
-	 * @throws an Error with relevant message if the model does not pass validation
-	 */
-	register: function(model) {
-
-		return service.validateNewUserModel(model)
-		.then(function() {
-			var salt = service.generateSalt();
-			var user = {
-				email : model.email,
-				name : model.name,
-				salt : salt,
-				password: service.hashPassword(model.password, salt)
-			}
-			return users.create(user)
-		});
-	},
-
 	/**
 	 * Log in a user via email/password combo
 	 * @returns A promise which resolves with the authenticated user, or null if either email or password is invalid.
 	 */
 	login : function(email, password) {
-		
-		return users.findOne({email: email})
+		return userService.findUser(email)
 		.then(function(user) {
-			if (!user || !service.checkPassword(user, password)) {
+			if (!user || !checkPassword(user, password)) {
 				return null;
 			}
 			
@@ -83,19 +30,11 @@ var service = {
 	},
 	
 	/**
-	 * Sets a user as system admin
-	 * todo: Move this out of authentication
-	 */
-	setAdmin: function(user, isAdmin) {
-		return users.update({id: user.id}, {isAdmin: isAdmin});
-	},
-	
-	/**
 	* Log in user via token.
 	* @returns a promise which resolves with the authenticated user, or null if token is invalid.
 	*/
 	tokenLogin : function(token) {
-		return users.findOne({id: token.user_id});
+		return userService.loadUser(token.user_id);
 	},
 
 	/**

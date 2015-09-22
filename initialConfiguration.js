@@ -4,7 +4,7 @@
 
 /* global process */
 var orm = require('./src/collections/orm'),
-	authService = require('./src/services/authentication'),
+	userService = require('./src/services/users'),
 	Promise = require('bluebird');
 
 function isConfigured() {
@@ -16,9 +16,9 @@ function isConfigured() {
 }
 
 function configureAdmin(adminUser) {
-	return authService.register(adminUser)
+	return userService.createUser(adminUser)
 	.then(function(user) {
-		return authService.setAdmin(user, true);
+		return userService.setAdmin(user, true);
 	})
 }
 

@@ -4,9 +4,7 @@ var
 	_ = require('lodash'),
 	ServiceError = require('./ServiceError');
 
-var 
-	users = orm.collections.user,
-	roles = orm.collections.role,
+var roles = orm.collections.role,
 	permissions = orm.collections.permission;
 
 /**

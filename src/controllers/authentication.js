@@ -1,7 +1,8 @@
 var 
 	Promise = require('bluebird'),
 	hal = require('hal'),
-	authService = require('../services/authentication');
+	authService = require('../services/authentication'),
+	userService = require('../services/users');
 
 function AuthenticationController(app, root) {
 
@@ -34,7 +35,7 @@ function AuthenticationController(app, root) {
 
 	self.register = function(req, res, next) {
 
-		authService.register(req.body).then(function(user) {
+		userService.createUser(req.body).then(function(user) {
 			var resource = new hal.Resource(user, routes.me);
 			resource.link('login', routes.login);
 
