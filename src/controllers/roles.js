@@ -2,7 +2,7 @@ var
 	Promise = require('bluebird'),
 	hal = require('hal'),
 	roleService = require('../services/roles'),
-	authService = require('../services/authentication'),
+	auth = require('../middleware/authentication'),
 	authorization = require('../services/authorization'),
 	_ = require('lodash');
 
@@ -119,11 +119,11 @@ function RolesController(app, root) {
 	}		
 	
 	//todo: There's probably a better way to do this with routers and wildcard middleware
-	app.get(routes.roles, authService.tokenAuth, authorization.requirePermission('manageRoles', true), self.getRoles);
-	app.post(routes.roles, authService.tokenAuth, authorization.requirePermission('manageRoles', true), self.createRole);
-	app.get(routes.role, authService.tokenAuth, authorization.requirePermission('manageRoles', true), self.getRole);
-	app.put(routes.role, authService.tokenAuth, authorization.requirePermission('manageRoles', true), self.updateRole);	
-	app.delete(routes.role, authService.tokenAuth, authorization.requirePermission('manageRoles', true), self.deleteRole);
+	app.get(routes.roles, auth.token, authorization.requirePermission('manageRoles', true), self.getRoles);
+	app.post(routes.roles, auth.token, authorization.requirePermission('manageRoles', true), self.createRole);
+	app.get(routes.role, auth.token, authorization.requirePermission('manageRoles', true), self.getRole);
+	app.put(routes.role, auth.token, authorization.requirePermission('manageRoles', true), self.updateRole);	
+	app.delete(routes.role, auth.token, authorization.requirePermission('manageRoles', true), self.deleteRole);
 }
 
 exports.Controller = RolesController;

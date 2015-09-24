@@ -1,8 +1,4 @@
 var config = require('config'),
-	passport = require('passport'),
-	Promise = require('bluebird'),
-	BasicStrategy = require('passport-http').BasicStrategy,
-	JwtStrategy = require('passport-jwt').Strategy,
 	jwt = require('jsonwebtoken'),
 	userService = require('./users'),
 	ServiceError = require('./ServiceError');
@@ -58,37 +54,9 @@ var service = {
 
 		var token = jwt.sign(payload, config.get('security.jwt.secretOrKey'), options);
 		return token;
-	},
-
-	/* Authentication method hooks for controllers to use instead of referencing passport directly */
-	basicAuth: passport.authenticate('basic', { session: false}),
-	tokenAuth: passport.authenticate('jwt', {session: false}),
-	optionalAuth: function(req, res, next) {
-	 	//Allow the request regardless, but set the correct user if authorized
-		passport.authenticate('jwt', function(err, user, info) {
-			req.user = user;
-			next();
-		})(req, res, next);
 	}
 };
 
-/* Authentication setup */
-passport.use('basic', new BasicStrategy(function(username, password, done) {
-	service.login(username, password).then(function(user) {
-		return done(null, user);	
-	}).catch(function(e) {
-		return done(e, false);
-	});
-}));
-
-var jwtOptions = config.get('security.jwt');
-passport.use('jwt', new JwtStrategy(jwtOptions, function(jwt, done) {
-	Promise.resolve(service.tokenLogin(jwt)).then(function(user) {
-		return done(null, user || false);
-	}).catch(function(err) {
-		return done(err, false);
-	})
-}));
 
 
 module.exports = service;

@@ -1,4 +1,4 @@
-var authService = require('../services/authentication'),
+var auth = require('../middleware/authentication'),
 	Promise = require('bluebird'),
 	hal = require('hal');
 
@@ -13,7 +13,7 @@ function UsersController(routePrefix) {
 	}
 	
 	var routes = {
-		"list": { rel: "users", href: routePrefix + '/users', auth: authService.tokenAuth, method: 'get', action: self.listUsers }
+		"list": { rel: "users", href: routePrefix + '/users', auth: auth.token, method: 'get', action: self.listUsers }
 	}
 
 }

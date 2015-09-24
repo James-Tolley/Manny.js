@@ -1,5 +1,5 @@
 var hal = require('hal'),
-	authService = require('./src/services/authentication');
+	auth = require('./src/middleware/authentication');
 
 var AuthenticationController = require('./src/controllers/authentication').Controller,
 	RolesController = require('./src/controllers/roles').Controller;
@@ -39,7 +39,7 @@ var ApiRoutes = function(app, root) {
 		return res.json(resource);
 	}
 	
-	app.get(root || '/', authService.optionalAuth, self.listRoutes);
+	app.get(root || '/', auth.optional, self.listRoutes);
 }
 
 module.exports = function(app, root) {
