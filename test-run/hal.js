@@ -1,7 +1,8 @@
 var should = require('should'),
 	request = require('supertest'),
 	config = require('config'),
-	url = 'localhost:' + config.get('server.port');
+	url = 'localhost:' + config.get('server.port'),
+	apiRoot = config.get('server.root');
 
 /*global describe, before, it*/
 describe('Hypermedia', function() {
@@ -16,7 +17,7 @@ describe('Hypermedia', function() {
 		}
 		
 		request(url)
-		.post('/api/register')
+		.post(apiRoot + '/register')
 		.send({
 			name: "Test user",
 			email: testUser.email,
@@ -36,7 +37,7 @@ describe('Hypermedia', function() {
 	describe('When not logged in', function() {
 		it('Should tell me where to go to login', function(done) {
 			request(url)
-			.get('/api')
+			.get(apiRoot)
 			.expect(200)
 			.end(function(err, res) {
 				res.body._links.should.have.property('login');
@@ -46,7 +47,7 @@ describe('Hypermedia', function() {
 
 		it('Should tell me where to go to register an account', function(done) {
 			request(url)
-			.get('/api')
+			.get(apiRoot)
 			.expect(200)
 			.end(function(err, res) {
 				res.body._links.should.have.property('register');
@@ -60,7 +61,7 @@ describe('Hypermedia', function() {
 
 		before(function(done) {
 			request(url)
-			.post('/api/token')
+			.post(apiRoot + '/token')
 			.auth(testUser.email, testUser.password)
 			.expect(200)
 			.end(function(err, res) {
@@ -71,7 +72,7 @@ describe('Hypermedia', function() {
 
 		it('Should tell me where to go to see my details', function(done) {
 			request(url)
-			.get('/api')
+			.get(apiRoot)
 			.set('Authorization', 'JWT ' + token)
 			.expect(200)
 			.end(function(err, res) {

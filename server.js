@@ -23,7 +23,10 @@ function boot() {
 	app.use(passport.initialize());
 	
 	
-	require('./routes')(app, '/api');
+	var apiRoot = config.get('server.root');
+	
+	
+	require('./routes')(app, apiRoot);
 	
 	app.use(function(err, req, res, next) {
 		if (err.name == 'ServiceError') {
@@ -35,7 +38,7 @@ function boot() {
 	var port = config.get('server.port');
 	app.listen(port);
 	console.log('Using configuration: ' + app.settings.env);
-	console.log('Listening on port ' + port);	
+	console.log('Api available at localhost:' + port + apiRoot);	
 }
 
 

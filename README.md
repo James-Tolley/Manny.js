@@ -20,6 +20,7 @@ Application provides login via username and password which it exchanges for a Js
  - /node_modules - Dependencies
  - /config
     - default.js - Default configuration
+ - /middleware - Custome Express middleware
  - /src
     - /collections - ORM Collections
         - orm.js   - ORM initialization
@@ -50,6 +51,7 @@ Configuration file is in `/config/default.json`
     // application server configuration*
     "server": {
         "port": 1337 // http port app should listen on
+        "root": "" // root url for api controllers. Do not use trailing slashes. So blank or path with leading slash only "/path/api"
     },
 
     // ORM configuration

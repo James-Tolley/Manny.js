@@ -2,13 +2,14 @@ var should = require('should'),
 	request = require('supertest'),
 	config = require('config'),
 	Promise = require('bluebird'),
-	url = 'localhost:' + config.get('server.port');
+	url = 'localhost:' + config.get('server.port'),
+	apiRoot = config.get('server.root');
 
 
 function login(username, password) {
 	return new Promise(function(resolve, reject) {
 		request(url)
-		.post('/api/token')
+		.post(apiRoot + '/token')
 		.auth(username, password)
 		.end(function(err, res) {
 			err ? reject(err) : resolve(res.body.access_token);
@@ -38,11 +39,11 @@ describe('Roles', function() {
 			it('Should tell me where to find the role management API', function(done) {
 							
 				request(url)
-				.get('/api')
+				.get(apiRoot)
 				.set('Authorization', 'JWT ' + accessToken)
 				.end(function(err, res) {
 					if (err) { throw err; }
-									
+					
 					res.body._links.should.have.property('roles');
 					links.roles = res.body._links.roles;
 					done();
@@ -51,6 +52,7 @@ describe('Roles', function() {
 			});
 			
 			it('Should let me see existing roles', function(done) {
+				
 				request(url)
 				.get(links.roles.href)
 				.set('Authorization', 'JWT ' + accessToken)
@@ -197,7 +199,7 @@ describe('Roles', function() {
 			}
 			
 			request(url)
-			.post('/api/register')
+			.post(apiRoot + '/register')
 			.send({
 				name: "Test user",
 				email: testUser.email,
@@ -220,7 +222,7 @@ describe('Roles', function() {
 		
 		it('Should not list the role Api link', function(done) {
 			request(url)
-			.get('/api')
+			.get(apiRoot)
 			.set('Authorization', 'JWT ' + accessToken)
 			.end(function(err, res) {
 				if (err) { throw err };
@@ -234,7 +236,7 @@ describe('Roles', function() {
 		it('Should not let me access the role api directly', function(done) {
 			
 			return request(url)
-			.get('/api/roles')
+			.get(apiRoot + '/roles')
 			.set('Authorization', 'JWT ' + accessToken)
 			.expect(403)
 			.end(function(err, res) {

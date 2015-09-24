@@ -1,7 +1,8 @@
 var should = require('should'),
 	request = require('supertest'),
 	config = require('config'),
-	url = 'localhost:' + config.get('server.port');
+	url = 'localhost:' + config.get('server.port'),
+	apiRoot = config.get('server.root');
 
 /*global describe, before, it*/
 describe('Auth', function() {
@@ -11,7 +12,7 @@ describe('Auth', function() {
 	it("Should return unauthorized if we're not logged in", function(done) {
 
 		request(url)
-		.get('/api/me')
+		.get(apiRoot + '/me')
 		.end(function(err, res) {
 			res.should.have.property('status', 401);
 			done();
@@ -28,7 +29,7 @@ describe('Auth', function() {
 			}
 			
 			request(url)
-			.post('/api/register')
+			.post(apiRoot + '/register')
 			.send({
 				name: "Test user",
 				email: testUser.email,
@@ -47,7 +48,7 @@ describe('Auth', function() {
 
 		it("Should tell me if the email address is already in use", function(done) {
 			request(url)
-			.post('/api/register')
+			.post(apiRoot + '/register')
 			.send({
 				name: "Test user 2",
 				email: testUser.email,
@@ -62,7 +63,7 @@ describe('Auth', function() {
 
 		it("It should tell me if my passwords do not match", function(done) {
 			request(url)
-			.post('/api/register')
+			.post(apiRoot + '/register')
 			.send({
 				name: "Test user 2",
 				email: "test2@example.com",
@@ -80,7 +81,7 @@ describe('Auth', function() {
 
 		it("Should reject invalid login details", function(done) {
 			request(url)
-			.post('/api/token')
+			.post(apiRoot + '/token')
 			.auth(testUser.email, 'secret-wrong')
 			.expect(401)
 			.end(function(err, res) {
@@ -91,7 +92,7 @@ describe('Auth', function() {
 		
 		it("Should exchange valid login details for a bearer token", function(done) {
 			request(url)
-			.post('/api/token')
+			.post(apiRoot + '/token')
 			.auth(testUser.email, testUser.password)
 			.expect(200)
 			.end(function(err, res) {
@@ -107,7 +108,7 @@ describe('Auth', function() {
 		it("Should allow access via an access token", function(done) {
 
 			request(url)
-			.get('/api/me')
+			.get(apiRoot + '/me')
 			.set('Authorization', 'JWT ' + testUser.token)
 			.expect(200)
 			.end(function(err, res) {
