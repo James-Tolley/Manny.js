@@ -31,6 +31,8 @@ Application provides login via username and password which it exchanges for a Js
   
 ## Documentation ##
 
+### Api ###
+
 Api documentation can be manually generated using apidoc
 
 If not already installed:
@@ -45,13 +47,15 @@ apidoc -i src/ -o apidoc/
 
 ## Configuration ##
 
-Configuration file is in `/config/default.json`
+Configuration is done via [config.js](https://github.com/lorenwest/node-config). Refer to documentation there for information.
+
+Default Configuration file is in `/config/default.json`
 ```
 {
     // application server configuration*
     "server": {
         "port": 1337 // http port app should listen on
-        "root": "" // root url for api controllers. Do not use trailing slashes. So blank or path with leading slash only "/path/api"
+        "root": "" // root url for api controllers. Do not use trailing slashes. Leave blank or path with leading slash only "/path/api"
     },
 
     // ORM configuration

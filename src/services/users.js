@@ -119,7 +119,7 @@ var service = {
 				userRole.role === role.id;
 			});
 			
-			if (existing && existing.scope != scope) {
+			if (!existing || existing.scope != scope) {
 				user.roles.push({
 					user: user,
 					role: role,
@@ -143,7 +143,7 @@ var service = {
 	 * @throws {ServiceError} Role does not exist
 	 * @throws {ServiceErorr} User does not have role at the specified scope
 	 * 
-	 * @returns Updated roles collection
+	 * @returns User and updated roles
 	 */	
 	removeRoleFromUser: function(user, roleName, scope) {
 		

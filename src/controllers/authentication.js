@@ -55,7 +55,7 @@ function AuthenticationController(app, root) {
 	 * @apiParam {string} email Email address to be used for account login
 	 * @apiParam {string} password Account password
 	 * @apiParam {string} confirmPassword Repeated password. This must match password
-	 * @apiParam {string} name User display name* 
+	 * @apiParam {string} name User display name 
 	 * 
 	 * @apiSuccess user Newly created account
 	 * @apiError 400 User model was not valid. See body for error details 
