@@ -39,14 +39,26 @@ var service = {
 		var regex = /^[a-z0-9!#$%&'*+\/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+\/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?$/i;
 		return regex.test(email);	
 	},
+	
+	checkPassword: function(password) {
+		//Don't allow colons as they can't be used in basic auth headers
+		if (password.indexOf(':') > 0) {
+			return "Password cannot contain a ':'";
+		}
+	},
 		
 	validateNewUserModel: function(model) {
 
 		if (!model.email) { return Promise.reject(new ServiceError("Email address is required")); }
 		if (!service.validEmail(model.email)) { return Promise.reject(new ServiceError("Email address is not valid")); }
-		if (!model.password) { return Promise.reject(new ServiceError("Password is required")); }
+		if (!model.password) { return Promise.reject( new ServiceError("Password is required")); }
+		
+		var passwordError = service.checkPassword(model.password);
+		if (passwordError) { return Promise.reject(new ServiceError(passwordError)); }
+		
 		if (!model.confirmPassword) { return Promise.reject(new ServiceError("Password confirmation is required")); }
 		if (model.password !== model.confirmPassword) { return Promise.reject(new ServiceError("Passwords do not match")); }
+		
 		 		
 		return users.findOne({email: model.email})
 		.then(function(user) {

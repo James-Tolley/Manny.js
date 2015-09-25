@@ -5,6 +5,9 @@ var
 	authService = require('../services/authentication'),
 	userService = require('../services/users');
 
+/**
+ * Authentication Api Actions
+ */
 function AuthenticationController(app, root) {
 
 	var 
@@ -17,6 +20,16 @@ function AuthenticationController(app, root) {
 			
 	self.app = app;
 
+	/**
+	 * @api {get} Get an authentication token for accessing secured methods
+	 * @apiName Token
+	 * @apiGroup Authentication
+	 * @apiDescription Client must authenticate via basic authentication header on calling
+	 * this method.
+	 * 
+	 * @apiSuccess user If the authentication details are valid, user details and access token are returned
+	 * @apiError 401 Login failed
+	 */
 	self.token = function(req, res, next) {
 		if (!req.user) {
 			return res.json(401, "Login failed");
@@ -34,6 +47,19 @@ function AuthenticationController(app, root) {
 		});
 	}
 
+	/**
+	 * @api {post} Register a new account
+	 * @apiName Register
+	 * @apiGroup Authentication
+	 * 
+	 * @apiParam {string} email Email address to be used for account login
+	 * @apiParam {string} password Account password
+	 * @apiParam {string} confirmPassword Repeated password. This must match password
+	 * @apiParam {string} name User display name* 
+	 * 
+	 * @apiSuccess user Newly created account
+	 * @apiError 400 User model was not valid. See body for error details 
+	 */
 	self.register = function(req, res, next) {
 
 		userService.createUser(req.body).then(function(user) {
@@ -46,6 +72,9 @@ function AuthenticationController(app, root) {
 		});
 	}
 
+	/**
+	 * @api {get} Retrieve current user details
+	 */
 	self.me = function(req, res, next) {
 		if (!req.user) {
 			return res.json(400, 'User not found');
