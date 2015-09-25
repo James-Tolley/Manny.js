@@ -1,21 +1,34 @@
-var auth = require('../middleware/authentication'),
+var authenticate = require('../middleware/authentication'),
+	authorize = require('../middleware/authorization'),
 	Promise = require('bluebird'),
-	hal = require('hal');
+	hal = require('hal'),
+	express = require('express'),
+	userService = require('../services/users');
 
-function UsersController(routePrefix) {
+function UsersController(app, root) {
 	
-	var self = this;
-	
-	this.listUsers = function(req, res) {
-		var users = userService.all();
-		
-		res.json(users);
+	var self = this,
+	controllerRoot = root + '/users',
+	routes = {
+		users: root + '',
+		user: root + '/:id',
+		userRoles: root + '/:id/roles'
 	}
 	
-	var routes = {
-		"list": { rel: "users", href: routePrefix + '/users', auth: auth.token, method: 'get', action: self.listUsers }
+	self.getUsers = function(req, res, next) {
+		userService.users().then(function(users) {
+			var resource = new hal.Resource(users, routes.users);
+			return res.json(resource);	
+		}).catch(function(e) {
+			next(e);
+		});
 	}
-
+	
+	var router = express.Router();
+	router.use(authenticate.token);
+	
+	router.get(routes.users, authorize.requirePermission('manageUsers', true), self.getUsers);
+	app.use(controllerRoot, router);
 }
 
 

@@ -1,9 +1,10 @@
 var 
 	Promise = require('bluebird'),
+	express = require('express'),
 	hal = require('hal'),
 	roleService = require('../services/roles'),
-	auth = require('../middleware/authentication'),
-	authorization = require('../services/authorization'),
+	authenticate = require('../middleware/authentication'),
+	authorize = require('../services/authorization'),
 	_ = require('lodash');
 
 /*
@@ -13,12 +14,17 @@ function RolesController(app, root) {
 	
 	var 
 		self = this,
+		controllerRoot = root + '/roles',
 		routes = {
-			roles: root + '/roles',
-			role: root + '/roles/:id',
-			grant: root + '/roles/:id/grant',
-			revoke: root + '/roles/:id/revoke'
+			roles: '',
+			role: '/:id',
+			grant: '/:id/grant',
+			revoke: '/:id/revoke'
 		}
+		
+	function getRoute(route) {
+		return controllerRoot + route;
+	}
 			
 	self.app = app;	
 	
@@ -30,11 +36,11 @@ function RolesController(app, root) {
 	self.getRoles = function(req, res, next) {
 		
 		roleService.roles().then(function(roles) {
-			var resource = new hal.Resource({}, routes.roles);
-			resource.link('create', routes.roles);
+			var resource = new hal.Resource({}, getRoute(routes.roles));
+			resource.link('create', getRoute(routes.roles));
 						
 			var embedded = _.map(roles, function(role) {
-				var res = new hal.Resource(role, routes.role.replace(':id', role.id));
+				var res = new hal.Resource(role, getRoute(routes.role.replace(':id', role.id)));
 				return res;
 			});
 			resource.embed("roles", embedded);
@@ -55,7 +61,7 @@ function RolesController(app, root) {
 	 */
 	self.createRole = function(req, res, next) {
 		roleService.createRole(req.body.name || req.body).then(function(role) {
-			var url = routes.role.replace(':id', role.id);
+			var url = getRoute(routes.role.replace(':id', role.id));
 			var resource = new hal.Resource(role, url);
 			resource.link('delete', url);
 			resource.link('update', url);
@@ -111,19 +117,24 @@ function RolesController(app, root) {
 			
 		if (user && user.isAdmin) {
 			return [
-				new hal.Link('roles', { href: routes.roles })
+				new hal.Link('roles', { href: getRoute(routes.roles) })
 			];
 		}
 	
 		return [];
 	}		
 	
-	//todo: There's probably a better way to do this with routers and wildcard middleware
-	app.get(routes.roles, auth.token, authorization.requirePermission('manageRoles', true), self.getRoles);
-	app.post(routes.roles, auth.token, authorization.requirePermission('manageRoles', true), self.createRole);
-	app.get(routes.role, auth.token, authorization.requirePermission('manageRoles', true), self.getRole);
-	app.put(routes.role, auth.token, authorization.requirePermission('manageRoles', true), self.updateRole);	
-	app.delete(routes.role, auth.token, authorization.requirePermission('manageRoles', true), self.deleteRole);
+	var router = express.Router();
+	router.use(authenticate.token);
+	router.use(authorize.requirePermission('manageRoles', true));
+	
+	router.get(routes.roles, self.getRoles);
+	router.post(routes.roles, self.createRole);
+	router.get(routes.role, self.getRole);
+	router.put(routes.role, self.updateRole);	
+	router.delete(routes.role, self.deleteRole);	
+		
+	app.use(controllerRoot, router);
 }
 
 exports.Controller = RolesController;

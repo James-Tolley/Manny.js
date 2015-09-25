@@ -1,6 +1,7 @@
 var 
 	Promise = require('bluebird'),
 	hal = require('hal'),
+	express = require('express'),
 	auth = require('../middleware/authentication'),
 	authService = require('../services/authentication'),
 	userService = require('../services/users');
@@ -12,11 +13,16 @@ function AuthenticationController(app, root) {
 
 	var 
 		self = this,
+		controllerRoot = root + '',
 		routes = {
-			login: root + '/token',
-			register: root + '/register',
-			me: root + '/me'
+			login: '/token',
+			register: '/register',
+			me: '/me'
 		}
+		
+	function getRoute(route) {
+		return controllerRoot + route;
+	}		
 			
 	self.app = app;
 
@@ -63,8 +69,8 @@ function AuthenticationController(app, root) {
 	self.register = function(req, res, next) {
 
 		userService.createUser(req.body).then(function(user) {
-			var resource = new hal.Resource(user, routes.me);
-			resource.link('login', routes.login);
+			var resource = new hal.Resource(user, getRoute(routes.me));
+			resource.link('login', getRoute(routes.login));
 
 			return res.json(resource);
 		}).catch(function(e) {
@@ -94,19 +100,22 @@ function AuthenticationController(app, root) {
 			
 		if (user) {
 			return [
-				new hal.Link('me', { href: routes.me })
+				new hal.Link('me', { href: getRoute(routes.me) })
 			]
 		}
 	
 		return [
-			new hal.Link('login', {href: routes.login}),
-			new hal.Link('register', {href: routes.register})
+			new hal.Link('login', {href: getRoute(routes.login) }),
+			new hal.Link('register', {href: getRoute(routes.register) })
 		]
 	}	
 	
-	app.post(routes.login, auth.basic, self.token);
-	app.post(routes.register, self.register);
-	app.get(routes.me, auth.token, self.me);
+	var router = express.Router();
+	router.post(routes.login, auth.basic, self.token);
+	router.post(routes.register, self.register);
+	router.get(routes.me, auth.token, self.me);
+
+	app.use(controllerRoot, router);
 }
 
 exports.Controller = AuthenticationController;
