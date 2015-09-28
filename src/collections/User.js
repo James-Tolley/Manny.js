@@ -24,6 +24,19 @@ var User = Waterline.Collection.extend({
 		roles: {
 			collection: 'userrole',
 			via: 'user'
+		},
+		toSummary: function() {
+			return {
+				id: this.id,
+				email: this.email,
+				name: this.name
+			}
+		},
+		toJSON: function() {
+			var obj = this.toObject();
+			delete obj.salt;
+			delete obj.password;
+			return obj;	
 		}
 	}
 });

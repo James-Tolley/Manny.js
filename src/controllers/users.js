@@ -30,7 +30,7 @@ function UsersController(app, root) {
 		userService.users().then(function(users) {
 			var resource = new hal.Resource({}, getRoute(routes.users));
 			var emebedded = _.map(users, function(user) {
-				var res = new hal.Resource(user, getRoute(routes.user.replace(':id', user.id)));
+				var res = new hal.Resource(user.toSummary(), getRoute(routes.user.replace(':id', user.id)));
 				return res;
 			});
 			resource.embed("users", emebedded);
@@ -53,7 +53,7 @@ function UsersController(app, root) {
 			}
 			
 			var url = getRoute(routes.user, user.id);
-			var resource = new hal.Resource(user, url);
+			var resource = new hal.Resource(user.toJSON(), url);
 			resource.link('update', url);
 			resource.link('roles', getRoute(routes.userRoles, user.id));
 			
