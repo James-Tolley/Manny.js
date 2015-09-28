@@ -56,7 +56,7 @@ describe('Auth', function() {
 				confirmPassword: "secret"
 			}).expect(400)
 			.end(function(err, res) {
-				res.body.message.should.match(/Email/i);
+				res.body.error.should.match(/Email/i);
 				done();
 			});
 		});
@@ -71,7 +71,7 @@ describe('Auth', function() {
 				confirmPassword: "secret-wrong"
 			}).expect(400)
 			.end(function(err, res) {
-				res.body.should.match(/password/i);
+				res.body.error.should.match(/password/i);
 				done();
 			});
 		});
@@ -85,7 +85,6 @@ describe('Auth', function() {
 			.auth(testUser.email, 'secret-wrong')
 			.expect(401)
 			.end(function(err, res) {
-				res.should.have.property('status', 401);
 				done();
 			})			
 		});

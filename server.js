@@ -30,7 +30,7 @@ function boot() {
 	
 	app.use(function(err, req, res, next) {
 		if (err.name == 'ServiceError') {
-			return res.json(400, { message: err.message } );
+			return res.json(400, { error: err.message } );
 		}
 		return next(err);
 	});

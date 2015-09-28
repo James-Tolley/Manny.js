@@ -2,14 +2,16 @@ var hal = require('hal'),
 	auth = require('./src/middleware/authentication');
 
 var AuthenticationController = require('./src/controllers/authentication').Controller,
-	RolesController = require('./src/controllers/roles').Controller;
+	RolesController = require('./src/controllers/roles').Controller,
+	UsersController = require('./src/controllers/users').Controller;
 
 var ApiRoutes = function(app, root) {
 
 	var self = this;
 	self.controllers = {
 		authentication: new AuthenticationController(app, root),
-		roles: new RolesController(app, root)
+		roles: new RolesController(app, root),
+		users: new UsersController(app, root)
 	}
 
 	self.getDirectory = function(user) {
@@ -17,8 +19,10 @@ var ApiRoutes = function(app, root) {
 		for (var name in self.controllers) {
 			var controller = self.controllers[name];
 
-			var entries = controller.getDirectory(user);
-			directory = directory.concat(entries);
+			if (controller.getDirectory) {
+				var entries = controller.getDirectory(user);
+				directory = directory.concat(entries);
+			}
 		}
 
 		return directory;

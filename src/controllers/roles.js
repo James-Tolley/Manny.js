@@ -94,7 +94,7 @@ function RolesController(app, root) {
 		var id = parseInt(req.params.id);
 		
 		if (!id || isNaN(id)) {
-			return res.json(400, "Invalid role Id");
+			return res.json(400, {error: "Invalid role Id"});
 		}
 		
 		roleService.updateRole(id, req.body).then(function(role) {

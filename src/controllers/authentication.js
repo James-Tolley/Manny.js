@@ -38,7 +38,7 @@ function AuthenticationController(app, root) {
 	 */
 	self.token = function(req, res, next) {
 		if (!req.user) {
-			return res.json(401, "Login failed");
+			return res.json(401, {error: "Login failed"});
 		}
 
 		Promise.resolve(authService.issueToken(req.user)).then(function(token) {
@@ -83,7 +83,7 @@ function AuthenticationController(app, root) {
 	 */
 	self.me = function(req, res, next) {
 		if (!req.user) {
-			return res.json(400, 'User not found');
+			return res.json(400, {error: "User not found"});
 		}
 
 		var userInfo = {

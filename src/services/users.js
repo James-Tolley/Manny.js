@@ -14,32 +14,65 @@ var users = orm.collections.user;
  */	
 var service = {
 	
+	/**
+	 * Get all users
+	 */
 	users: function() {
 		return users.find();
 	},	
 	
+	/**
+	 * Find a user by email address
+	 * 
+	 * @returns Found user, or null if user does not exist
+	 */
 	findUser: function(email) {
 		return users.findOne({email: email});
 	},
 	
+	/**
+	 * Load a user by id.
+	 * 
+	 * @returns Found user, or null if user does not exist
+	 */
 	loadUser: function(id) {
 		return users.findOne({id: id});
 	},
 	
+	/**
+	 * Generate a crytographically secure random salt
+	 * 
+	 * @returns {string} salt encoded as hexadecimal
+	 */
 	generateSalt: function() {
 		return crypto.randomBytes(16).toString('hex');	
 	},
 
+	/**
+	 * Hash a password using a slow hashing function and a salt.
+	 * 
+	 * @returns {string} hashed password encoded as hexadecimal
+	 */
 	hashPassword: function(password, salt) {
 		return crypto.pbkdf2Sync(password, salt, 4096, 256).toString('hex');	
 	},
 	
+	/**
+	 * Validate an email address
+	 * 
+	 * @return true if email is valid, false otherwise
+	 */
 	validEmail: function(email) {
 		//http://stackoverflow.com/questions/46155/validate-email-address-in-javascript
 		var regex = /^[a-z0-9!#$%&'*+\/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+\/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?$/i;
 		return regex.test(email);	
 	},
 	
+	/**
+	 * Validate a password
+	 * 
+	 * @returns {string} Empty string if password is valid, otherwise an error message
+	 */
 	checkPassword: function(password) {
 		//Don't allow colons as they can't be used in basic auth headers
 		if (password.indexOf(':') > 0) {
@@ -47,6 +80,12 @@ var service = {
 		}
 	},
 		
+	/**
+	 * Validates a new user model
+	 * 
+	 * @returns Promise which succeeds with no value if model is valid and rejects with a relevant error if it is not
+	 * @throws {ServiceError} Model does not pass validation
+	 */
 	validateNewUserModel: function(model) {
 
 		if (!model.email) { return Promise.reject(new ServiceError("Email address is required")); }
@@ -70,7 +109,7 @@ var service = {
 	/**
 	 * Create a new user.
 	 * @returns a promise which resolves with the newly created user
-	 * @throws {ServiceErorr} Model does not pass validation
+	 * @throws {ServiceError} Model does not pass validation
 	 */
 	createUser: function(model) {
 

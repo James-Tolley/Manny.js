@@ -25,6 +25,17 @@ var service = {
 			}
 		}
 	},	
+	
+	/**
+	 * Specifically require a user to be an admin to perform this action
+	 */
+	requireAdmin: function(req, res, next) {
+		if (req.user.isAdmin) {
+			return next();
+		} else {
+			return res.status(403).send('Access Denied');
+		}
+	},
 		
 	/**
 	 * Check that a user has a permission within a given scope.
