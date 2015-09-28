@@ -22,6 +22,19 @@ function configureAdmin(adminUser) {
 	})
 }
 
+function seedData() {
+	var permissionData = require('./data/permissions.json');
+	
+	var permissionQueries = new Array(permissionData.count);
+	
+	for (var i = 0; i < permissionData.length; i++) {
+		var permission = permissionData[i];
+		permissionQueries[i] = orm.collections.permission.findOrCreate({name: permission.name}, permission);
+	}
+	
+	return Promise.all(permissionQueries);
+}
+
 function configureFromObject(config) {
 	console.log("Using configuration file");
 	var adminUser = config.admin;
@@ -67,7 +80,12 @@ function configure() {
 	console.log('Application has not been configured yet. Performing initial setup');	
 	var initialConfig = getInitialConfig();
 	
-	return initialConfig ? configureFromObject(initialConfig) : configureFromCommandLine();
+	
+	return seedData().then(
+		function(permissions) {
+			return initialConfig ? configureFromObject(initialConfig) : configureFromCommandLine();		
+		}
+	)
 }
 
 module.exports = function() {

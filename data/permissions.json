@@ -1,0 +1,12 @@
+[
+	{
+		"name": "manageUsers",
+		"description": "User can manage other users and their roles",
+		"isGlobal": true
+	},
+	{
+		"name": "manageRoles",
+		"description": "User can manage roles and their permissions",
+		"isGlobal": true
+	}
+]

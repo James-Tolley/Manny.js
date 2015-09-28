@@ -19,7 +19,8 @@ function RolesController(app, root) {
 			roles: '',
 			role: '/:id',
 			grant: '/:id/grant',
-			revoke: '/:id/revoke'
+			revoke: '/:id/revoke',
+			permissions: '/permissions'
 		}
 		
 	function getRoute(route) {
@@ -49,7 +50,18 @@ function RolesController(app, root) {
 		}).catch(function(e) {
 			return next(e);
 		});
-		
+	}
+	
+	/**
+	 * Get all built in permissions
+	 */
+	self.getPermissions = function(req, res, next) {
+		roleService.permissions().then(function(permissions) {
+			var resource = new hal.Resource({permissions: permissions}, getRoute(routes.permissions));
+			return res.json(resource);
+		}).catch(function(e) {
+			return next(e);
+		})
 	}
 	
 	/**
@@ -129,6 +141,7 @@ function RolesController(app, root) {
 	router.use(authorize.requirePermission('manageRoles', true));
 	
 	router.get(routes.roles, self.getRoles);
+	router.get(routes.permissions, self.getPermissions);
 	router.post(routes.roles, self.createRole);
 	router.get(routes.role, self.getRole);
 	router.put(routes.role, self.updateRole);	

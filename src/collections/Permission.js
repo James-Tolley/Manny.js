@@ -9,6 +9,9 @@ var Permission = Waterline.Collection.extend({
 			required: true,
 			unique: true
 		},
+		description: {
+			type: 'string'
+		},
 		isGlobal: {
 			type: 'boolean',
 			required: true,
