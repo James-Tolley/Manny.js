@@ -135,7 +135,7 @@ var service = {
 	
 	/**
 	 * Assign a role to a user. 
-	 * @param user User to assign role to
+	 * @param {number} userId User to assign role to
 	 * @param {string} roleName name of role to assign
 	 * @param {string} scope if set, limit role to this scope. 
 	 * 
@@ -174,19 +174,42 @@ var service = {
 	/**
 	 * Remove a role from a user.
 	 * 
-	 * @param user User to assign role to
+	 * @param {number} userId User to assign role to
 	 * @param {string} roleName name of role to remove
 	 * @param {string} scope Scope to remove the role from.	
 	 *  
 	 * @throws {ServiceError} User does not exist
 	 * @throws {ServiceError} Role does not exist
-	 * @throws {ServiceErorr} User does not have role at the specified scope
+	 * @throws {ServiceError} User does not have role at the specified scope
 	 * 
 	 * @returns User and updated roles
 	 */	
-	removeRoleFromUser: function(user, roleName, scope) {
+	removeRoleFromUser: function(userId, roleName, scope) {
 		
-	},
+		var userLoad = service.loadUser(userId).populate('roles');
+		var roleLoad = roleService.findRole(roleName);
+				
+		return Promise.all([userLoad, roleLoad])
+		.spread(function(user, role) {
+			if (!user) { throw new ServiceError("User does not exist"); }
+			if (!role) { throw new ServiceError("Role does not exist"); }
+						
+			var removed = _.remove(user.roles, function(userRole) {
+				return userRole.role === role.id 
+					&& (userRole.scope || "") == (scope || "");
+			});
+			
+			if (removed.length <= 0) {
+				var error = "User does not have role " + roleName;
+				if (scope) {
+					error = error + " at scope " + scope;
+				}
+				throw new ServiceError(error);
+			}	
+					
+			return user.save();
+		});
+	}
 	
 }
 

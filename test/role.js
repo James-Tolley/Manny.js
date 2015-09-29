@@ -1,5 +1,4 @@
 var should = require('should'),
-	config = require('config'),
 	sinon = require('sinon'),
 	rewire = require('rewire'),
 	Promise = require('bluebird'),
