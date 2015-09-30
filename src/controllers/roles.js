@@ -4,7 +4,7 @@ var
 	hal = require('hal'),
 	roleService = require('../services/roles'),
 	authenticate = require('../middleware/authentication'),
-	authorize = require('../services/authorization'),
+	authorize = require('../middleware/authorization'),
 	_ = require('lodash');
 
 /*

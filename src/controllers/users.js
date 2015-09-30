@@ -1,5 +1,5 @@
 var authenticate = require('../middleware/authentication'),
-	authorize = require('../services/authorization'),
+	authorize = require('../middleware/authorization'),
 	Promise = require('bluebird'),
 	hal = require('hal'),
 	express = require('express'),

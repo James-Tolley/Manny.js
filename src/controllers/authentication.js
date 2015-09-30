@@ -2,7 +2,7 @@ var
 	Promise = require('bluebird'),
 	hal = require('hal'),
 	express = require('express'),
-	auth = require('../middleware/authentication'),
+	authenticate = require('../middleware/authentication'),
 	authService = require('../services/authentication'),
 	userService = require('../services/users');
 
@@ -111,9 +111,9 @@ function AuthenticationController(app, root) {
 	}	
 	
 	var router = express.Router();
-	router.post(routes.login, auth.basic, self.token);
+	router.post(routes.login, authenticate.basic, self.token);
 	router.post(routes.register, self.register);
-	router.get(routes.me, auth.token, self.me);
+	router.get(routes.me, authenticate.token, self.me);
 
 	app.use(controllerRoot, router);
 }
