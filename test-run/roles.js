@@ -178,12 +178,6 @@ describe('Roles', function() {
 			})
 			
 		});
-		
-		// describe('Deleting a role', function() {
-			
-			
-			
-		// });
 	});
 	
 	describe('If I do not have permission', function() {

@@ -4,21 +4,24 @@ var authenticate = require('../middleware/authentication'),
 	hal = require('hal'),
 	express = require('express'),
 	_ = require('lodash'),
-	userService = require('../services/users');
+	userService = require('../services/users'),
+	authService = require('../services/authorization'),
+	rolesController = require('./roles');
 
 function UsersController(app, root) {
 	
 	var self = this,
-	controllerRoot = root + '/users',
-	routes = {
+	controllerRoot = root + '/users';
+	
+	self.routes = {
 		users: '',
 		user: '/:id',
-		userRoles: '/:id/roles',
+		userPermissions: '/:id/permissions/:scope?',
 		makeAdmin: '/:id/makeadmin',
 		removeAdmin: '/:id/removeadmin'
 	}
 	
-	function getRoute(route, id) {
+	self.getRoute = function(route, id) {
 		var url = controllerRoot + route;
 		if (id) {
 			url = url.replace(':id', id);
@@ -28,9 +31,9 @@ function UsersController(app, root) {
 	
 	self.getUsers = function(req, res, next) {
 		userService.users().then(function(users) {
-			var resource = new hal.Resource({}, getRoute(routes.users));
+			var resource = new hal.Resource({}, self.getRoute(self.routes.users));
 			var emebedded = _.map(users, function(user) {
-				var res = new hal.Resource(user.toSummary(), getRoute(routes.user.replace(':id', user.id)));
+				var res = new hal.Resource(user.toSummary(), self.getRoute(self.routes.user, user.id));
 				return res;
 			});
 			resource.embed("users", emebedded);
@@ -46,26 +49,40 @@ function UsersController(app, root) {
 		if (!id || isNaN(id)) {
 			return res.json(400, {error: "Invalid user id"})
 		}
+		
+		
 		userService.loadUser(id)
 		.then(function(user) {
 			if (!user) {
 				return res.json(400, {error: "User not found"});
 			}
 			
-			var url = getRoute(routes.user, user.id);
+			var url = self.getRoute(self.routes.user, user.id);
 			var resource = new hal.Resource(user.toJSON(), url);
 			resource.link('update', url);
-			resource.link('roles', getRoute(routes.userRoles, user.id));
 			
 			if (req.user.isAdmin && req.user.id !== user.id) {
 				if (user.isAdmin) {
-					resource.link('removeadmin', getRoute(routes.removeAdmin, user.id));
+					resource.link('removeadmin', self.getRoute(self.routes.removeAdmin, user.id));
 				} else {
-					resource.link('makeadmin', getRoute(routes.makeadmin, user.id));
+					resource.link('makeadmin', self.getRoute(self.routes.makeAdmin, user.id));
 				}
-			}
+			}			
 			
-			return res.json(resource);
+			userService.getRolesForUser(id).then(function(userRoles) {
+				
+				var embedded = _.map(userRoles, function(ur) {
+					var res = new hal.Resource(ur, rolesController.getRoute(rolesController.routes.role, ur.role));
+					//res.link('delete', self.getRoute(self.routes.deleteRole))
+					return res;
+				});
+				
+				resource.embed("roles", embedded);
+				
+				return res.json(resource);
+			});
+			
+			
 		}).catch(function(e) {
 			next(e);
 		})
@@ -111,13 +128,38 @@ function UsersController(app, root) {
 		});			
 	}
 	
+	self.getPermissions = function(req, res, next) {
+		var id = parseInt(req.params.id);
+		if (!id || isNaN(id)) {
+			return res.json(400, {error: "Invalid user id"})
+		}
+		
+		var scope = req.params.scope;
+		authService.getPermissionsAtScope(id, scope)
+		.then(function(permissions) {
+			return res.json(permissions);
+		})
+	}
+	
+	self.getDirectory = function(user) {		
+			
+		if (user && user.isAdmin) {
+			return [
+				new hal.Link('users', { href: self.getRoute(self.routes.users) })
+			];
+		}
+	
+		return [];
+	}			
+	
 	var router = express.Router();
 	router.use(authenticate.token);
 	
-	router.get(routes.users, authorize.requirePermission('manageUsers', true), self.getUsers);
-	router.get(routes.user, authorize.requirePermission('manageUsers', true), self.getUser);
-	router.post(routes.makeAdmin, authorize.requireAdmin, self.makeAdmin);
-	router.post(routes.removeAdmin, authorize.requireAdmin, self.removeAdmin);
+	router.get(self.routes.users, authorize.requirePermission('manageUsers', true), self.getUsers);
+	router.get(self.routes.user, authorize.requirePermission('manageUsers', true), self.getUser);
+	router.post(self.routes.makeAdmin, authorize.requireAdmin, self.makeAdmin);
+	router.post(self.routes.removeAdmin, authorize.requireAdmin, self.removeAdmin);
+	router.get(self.routes.userPermissions, authorize.requirePermission('manageUsers', true), self.getPermissions);
 	app.use(controllerRoot, router);
 }
 

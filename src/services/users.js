@@ -7,7 +7,8 @@ var
 	ServiceError = require('./ServiceError');
 	
 
-var users = orm.collections.user;
+var users = orm.collections.user,
+	userRoles = orm.collections.userrole;
 
 /**
  * User management
@@ -131,7 +132,14 @@ var service = {
 	 */
 	setAdmin: function(user, isAdmin) {
 		return users.update({id: user.id}, {isAdmin: isAdmin});
-	},		
+	},	
+	
+	/**
+	 * Get all roles for a user
+	 */
+	getRolesForUser: function(userId) {
+		return userRoles.find({user: userId}).populate('role');
+	},
 	
 	/**
 	 * Assign a role to a user. 
@@ -146,7 +154,7 @@ var service = {
 	 */
 	assignRoleToUser: function(userId, roleName, scope) {
 		
-		var userLoad = service.loadUser(userId).populate('roles');
+		var userLoad = users.findOne({id: userId}).populate('roles');
 		var roleLoad = roleService.findRole(roleName);
 		
 		return Promise.all([userLoad, roleLoad])
@@ -186,7 +194,7 @@ var service = {
 	 */	
 	removeRoleFromUser: function(userId, roleName, scope) {
 		
-		var userLoad = service.loadUser(userId).populate('roles');
+		var userLoad = users.findOne({id: userId}).populate('roles');
 		var roleLoad = roleService.findRole(roleName);
 				
 		return Promise.all([userLoad, roleLoad])

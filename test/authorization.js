@@ -12,6 +12,48 @@ describe('Authorization', function() {
 		id: 1
 	};
 	
+	beforeEach(function() {
+		
+		var fakePermissions = [
+			{id: 1, name: "Permission 1"},
+			{id: 2, name: "Permission 2"},
+			{id: 3, name: "Permission 3"},
+			{id: 4, name: "Permission 4"}
+		]
+		var fakeRoles = [
+			{
+				user: 1,
+				role: {
+					id: 1,
+					name: "Role 1"			
+				}
+			},
+			{
+				user: 1,
+				role: {
+					id: 1,
+					name: "Role 1"
+				},
+				scope: "scope1"
+			},
+			{
+				user: 1,
+				role: {
+					id: 2,
+					name: "Role 2"
+				},
+				scope: "scope1"
+			}
+		]
+		
+		var userServiceMock = {
+			getRolesForUser: function() { return Promise.resolve(fakeRoles); }
+		}
+		
+		service.__set__('userService', userServiceMock);
+		
+	});
+	
 	it('Should authorize if user has the correct permission in the correct scope', function() {
 		return service.checkPermission(testUser, "localPermission", "testScope")
 		.then(function(granted) {

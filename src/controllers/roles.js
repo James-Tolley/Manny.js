@@ -14,8 +14,9 @@ function RolesController(app, root) {
 	
 	var 
 		self = this,
-		controllerRoot = root + '/roles',
-		routes = {
+		controllerRoot = root + '/roles';
+		
+	self.routes = {
 			roles: '',
 			role: '/:id',
 			grant: '/:id/grant',
@@ -23,8 +24,12 @@ function RolesController(app, root) {
 			permissions: '/permissions'
 		}
 		
-	function getRoute(route) {
-		return controllerRoot + route;
+	self.getRoute = function(route, id) {
+		var url = controllerRoot + route;
+		if (id) {
+			url = url.replace(':id', id);
+		}
+		return url;
 	}
 			
 	self.app = app;	
@@ -37,11 +42,11 @@ function RolesController(app, root) {
 	self.getRoles = function(req, res, next) {
 		
 		roleService.roles().then(function(roles) {
-			var resource = new hal.Resource({}, getRoute(routes.roles));
-			resource.link('create', getRoute(routes.roles));
+			var resource = new hal.Resource({}, self.getRoute(self.routes.roles));
+			resource.link('create', self.getRoute(self.routes.roles));
 						
 			var embedded = _.map(roles, function(role) {
-				var res = new hal.Resource(role, getRoute(routes.role.replace(':id', role.id)));
+				var res = new hal.Resource(role, self.getRoute(self.routes.role, role.id));
 				return res;
 			});
 			resource.embed("roles", embedded);
@@ -57,7 +62,7 @@ function RolesController(app, root) {
 	 */
 	self.getPermissions = function(req, res, next) {
 		roleService.permissions().then(function(permissions) {
-			var resource = new hal.Resource({permissions: permissions}, getRoute(routes.permissions));
+			var resource = new hal.Resource({permissions: permissions}, self.getRoute(self.routes.permissions));
 			return res.json(resource);
 		}).catch(function(e) {
 			return next(e);
@@ -73,7 +78,7 @@ function RolesController(app, root) {
 	 */
 	self.createRole = function(req, res, next) {
 		roleService.createRole(req.body.name || req.body).then(function(role) {
-			var url = getRoute(routes.role.replace(':id', role.id));
+			var url = self.getRoute(self.routes.role, role.id);
 			var resource = new hal.Resource(role, url);
 			resource.link('delete', url);
 			resource.link('update', url);
@@ -129,7 +134,7 @@ function RolesController(app, root) {
 			
 		if (user && user.isAdmin) {
 			return [
-				new hal.Link('roles', { href: getRoute(routes.roles) })
+				new hal.Link('roles', { href: self.getRoute(self.routes.roles) })
 			];
 		}
 	
@@ -140,12 +145,12 @@ function RolesController(app, root) {
 	router.use(authenticate.token);
 	router.use(authorize.requirePermission('manageRoles', true));
 	
-	router.get(routes.roles, self.getRoles);
-	router.get(routes.permissions, self.getPermissions);
-	router.post(routes.roles, self.createRole);
-	router.get(routes.role, self.getRole);
-	router.put(routes.role, self.updateRole);	
-	router.delete(routes.role, self.deleteRole);	
+	router.get(self.routes.roles, self.getRoles);
+	router.get(self.routes.permissions, self.getPermissions);
+	router.post(self.routes.roles, self.createRole);
+	router.get(self.routes.role, self.getRole);
+	router.put(self.routes.role, self.updateRole);	
+	router.delete(self.routes.role, self.deleteRole);	
 		
 	app.use(controllerRoot, router);
 }
