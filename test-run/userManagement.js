@@ -66,22 +66,23 @@ describe('User management', function() {
 			.expect(200)
 			.end(function(err, res) {
 				if (err) { throw err; }
+				links.userRoles = res.body._links.roles;
 				res.body.should.have.property('email');
 				done();
 			});					
 		});
 		
-		it('Should list user roles', function(done) {
+		it('Should let me view user roles', function(done) {
 			request(url)
-			.get(links.user.href)
+			.get(links.userRoles.href)
 			.set('Authorization', 'JWT ' + accessToken)
 			.expect(200)
 			.end(function(err, res) {
 				if (err) { throw err; }
 				res.body._embedded.should.have.property('roles');
 				done();
-			});				
-		})
+			});	
+		});
 		
 	});
 	

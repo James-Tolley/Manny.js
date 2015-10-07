@@ -81,7 +81,8 @@ function UsersController(app, root) {
 				}
 			}		
 			
-			resource.link('roles', self.getRoute(self.routes.userRoles, user.id));				
+			resource.link('roles', self.getRoute(self.routes.userRoles, user.id));		
+			return res.json(resource);		
 		}).catch(function(e) {
 			next(e);
 		})
@@ -102,8 +103,8 @@ function UsersController(app, root) {
 		
 		userService.getRolesForUser(id).then(function(userRoles) {
 			
-			var resource = {};
-			var templateLink = self.getRole(self.routes.userRole, id);
+			var resource = new hal.Resource({}, self.getRoute(self.routes.userRoles, id));
+			var templateLink = self.getRoute(self.routes.userRole, id);
 			templateLink = templateLink.replace(':roleId', '{roleId}').replace(':scope?', '{scope}');
 			
 			resource.link('addRole', {href: templateLink, templated: true});
