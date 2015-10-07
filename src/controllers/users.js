@@ -30,6 +30,11 @@ function UsersController(app, root) {
 		return url;
 	}	
 	
+	/**
+	 * @api {get} /users List all users
+	 * @apiName GetUsers
+	 * @apiGroup User
+	 */
 	self.getUsers = function(req, res, next) {
 		userService.users().then(function(users) {
 			var resource = new hal.Resource({}, self.getRoute(self.routes.users));
@@ -45,12 +50,18 @@ function UsersController(app, root) {
 		});
 	}
 	
+	/**
+	 * @api {get} /users/:id Get a single user
+	 * @apiName GetUser
+	 * @apiGroup User
+	 * 
+	 * @apiParam {number} id User id 
+	 */
 	self.getUser = function(req, res, next) {
 		var id = parseInt(req.params.id);
 		if (!id || isNaN(id)) {
 			return res.json(400, {error: "Invalid user id"})
 		}
-		
 		
 		userService.loadUser(id)
 		.then(function(user) {
@@ -70,27 +81,52 @@ function UsersController(app, root) {
 				}
 			}		
 			
-			resource.link('roles', self.getRoute(self.routes.userRoles, user.id));	
-			
-			// userService.getRolesForUser(id).then(function(userRoles) {
-			// 	
-			// 	var embedded = _.map(userRoles, function(ur) {
-			// 		var res = new hal.Resource(ur, rolesController.getRoute(rolesController.routes.role, ur.role));
-			// 		//res.link('delete', self.getRoute(self.routes.deleteRole))
-			// 		return res;
-			// 	});
-			// 	
-			// 	resource.embed("roles", embedded);
-			// 	
-			// 	return res.json(resource);
-			// });
-			
-			
+			resource.link('roles', self.getRoute(self.routes.userRoles, user.id));				
 		}).catch(function(e) {
 			next(e);
 		})
 	}
 	
+	/**
+	 * @api {get} /users/:id/roles Get all roles for a user
+	 * @apiName GetUserRoles
+	 * @apiGroup User
+	 * 
+	 * @apiParam {number} id User id
+	 */
+	self.getUserRoles = function(req, res, next) {
+		var id = parseInt(req.params.id);
+		if (!id || isNaN(id)) {
+			return res.json(400, {error: "Invalid user id"})
+		}
+		
+		userService.getRolesForUser(id).then(function(userRoles) {
+			
+			var resource = {};
+			var templateLink = self.getRole(self.routes.userRole, id);
+			templateLink = templateLink.replace(':roleId', '{roleId}').replace(':scope?', '{scope}');
+			
+			resource.link('addRole', {href: templateLink, templated: true});
+			resource.link('removeRole', {href: templateLink, templated: true});
+			
+			var embedded = _.map(userRoles, function(ur) {
+				var res = new hal.Resource(ur, rolesController.getRoute(rolesController.routes.role, ur.role));
+				return res;
+			});
+			
+			resource.embed("roles", embedded);
+			
+			return res.json(resource);
+		});		
+	}
+	
+	/**
+	 * @api {post} /users/:id/admin Make a user system admin
+	 * @apiName MakeAdmin
+	 * @apiGroup User
+	 * 
+	 * @apiParam {number} id User id
+	 */
 	self.makeAdmin = function(req, res, next) {
 		var id = parseInt(req.params.id);
 		if (!id || isNaN(id)) {
@@ -109,6 +145,13 @@ function UsersController(app, root) {
 		});	
 	}
 	
+	/**
+	 * @api {delete} /users/:id/admin Remove admin from a user
+	 * @apiName RemoveAdmin
+	 * @apiGroup User
+	 * 
+	 * @apiParam {number} id User Id
+	 */
 	self.removeAdmin = function(req, res, next) {
 		var id = parseInt(req.params.id);
 		if (!id || isNaN(id)) {
@@ -131,6 +174,15 @@ function UsersController(app, root) {
 		});			
 	}
 	
+	/**
+	 * @api {get} /users/:id/permissions/:scope? Get all permissions a user has at a particular scope
+	 * @apiName GetPermissions
+	 * @apiGroup User
+	 * 
+	 * @apiParam {number} id User Id
+	 * @apiParam {string} scope Optional. Return permissions available at a particular scope. 
+	 * If not specified only global permissions are returned.
+	 */
 	self.getPermissions = function(req, res, next) {
 		var id = parseInt(req.params.id);
 		if (!id || isNaN(id)) {

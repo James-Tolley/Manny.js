@@ -27,7 +27,7 @@ function AuthenticationController(app, root) {
 	self.app = app;
 
 	/**
-	 * @api {get} Get an authentication token for accessing secured methods
+	 * @api {get} /token Get an authentication token for accessing secured methods
 	 * @apiName Token
 	 * @apiGroup Authentication
 	 * @apiDescription Client must authenticate via basic authentication header on calling
@@ -54,7 +54,7 @@ function AuthenticationController(app, root) {
 	}
 
 	/**
-	 * @api {post} Register a new account
+	 * @api {post} /register Register a new account
 	 * @apiName Register
 	 * @apiGroup Authentication
 	 * 
@@ -79,7 +79,9 @@ function AuthenticationController(app, root) {
 	}
 
 	/**
-	 * @api {get} Retrieve current user details
+	 * @api {get} /me Retrieve current user details
+	 * @apiName Me
+	 * @apiGroup Authentication
 	 */
 	self.me = function(req, res, next) {
 		if (!req.user) {
