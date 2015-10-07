@@ -167,7 +167,7 @@ var service = {
 			});
 			
 			if (!existing || existing.scope != scope) {
-				user.roles.push({
+				user.roles.add({
 					user: user,
 					role: role,
 					scope: scope

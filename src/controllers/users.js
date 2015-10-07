@@ -107,8 +107,8 @@ function UsersController(app, root) {
 			var templateLink = self.getRoute(self.routes.userRole, id);
 			templateLink = templateLink.replace(':roleId', '{roleId}').replace(':scope?', '{scope}');
 			
-			resource.link('addRole', {href: templateLink, templated: true});
-			resource.link('removeRole', {href: templateLink, templated: true});
+			resource.link('add', {href: templateLink, templated: true});
+			resource.link('remove', {href: templateLink, templated: true});
 			
 			var embedded = _.map(userRoles, function(ur) {
 				var res = new hal.Resource(ur, rolesController.getRoute(rolesController.routes.role, ur.role));
