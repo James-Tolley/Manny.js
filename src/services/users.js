@@ -143,8 +143,8 @@ var service = {
 	
 	/**
 	 * Assign a role to a user. 
-	 * @param {number} userId User to assign role to
-	 * @param {string} roleName name of role to assign
+	 * @param {number} userId Id User to assign role to
+	 * @param {number} roleId Id of role to assign
 	 * @param {string} scope if set, limit role to this scope. 
 	 * 
 	 * @throws {ServiceError} User does not exist
@@ -152,10 +152,10 @@ var service = {
 	 * 
 	 * @returns User and updated roles
 	 */
-	assignRoleToUser: function(userId, roleName, scope) {
+	assignRoleToUser: function(userId, roleId, scope) {
 		
 		var userLoad = users.findOne({id: userId}).populate('roles');
-		var roleLoad = roleService.findRole(roleName);
+		var roleLoad = roleService.loadRole(roleId);
 		
 		return Promise.all([userLoad, roleLoad])
 		.spread(function(user, role) {
@@ -182,8 +182,8 @@ var service = {
 	/**
 	 * Remove a role from a user.
 	 * 
-	 * @param {number} userId User to assign role to
-	 * @param {string} roleName name of role to remove
+	 * @param {number} userId Id of user to assign role to
+	 * @param {number} roleId Id of role to remove
 	 * @param {string} scope Scope to remove the role from.	
 	 *  
 	 * @throws {ServiceError} User does not exist
@@ -192,10 +192,10 @@ var service = {
 	 * 
 	 * @returns User and updated roles
 	 */	
-	removeRoleFromUser: function(userId, roleName, scope) {
+	removeRoleFromUser: function(userId, roleId, scope) {
 		
 		var userLoad = users.findOne({id: userId}).populate('roles');
-		var roleLoad = roleService.findRole(roleName);
+		var roleLoad = roleService.loadRole(roleId);
 				
 		return Promise.all([userLoad, roleLoad])
 		.spread(function(user, role) {
@@ -208,7 +208,7 @@ var service = {
 			});
 			
 			if (removed.length <= 0) {
-				var error = "User does not have role " + roleName;
+				var error = "User does not have role " + role.name;
 				if (scope) {
 					error = error + " at scope " + scope;
 				}

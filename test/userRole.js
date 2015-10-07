@@ -31,7 +31,7 @@ describe("Users", function() {
 			}
 			
 			var roleServiceMock = {
-				findRole: function() { return testRole }
+				loadRole: function() { return testRole }
 			}
 			
 			userService.__set__("users", usersMock);
@@ -117,7 +117,7 @@ describe("Users", function() {
 			}
 			
 			var roleServiceMock = {
-				findRole: function() { return testRole }
+				loadRole: function() { return testRole }
 			}
 			
 			userService.__set__("users", usersMock);

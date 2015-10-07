@@ -116,8 +116,60 @@ function UsersController(app, root) {
 			
 			resource.embed("roles", embedded);
 			
-			return res.json(resource);
+			return res.json(resource); 
 		});		
+	}
+	
+	/**
+	 * @api {post} /users/:id/roles/:roleId/:scope? Add a user to a role. 
+	 * @apiName AddUserToRole
+	 * @apiGroup User
+	 * 
+	 * @apiParam {number} id User Id
+	 * @apiParam {number} roleId Role Id
+	 * @apiParam {string} [scope] Optionally limited role to this scope only.
+	 */
+	self.addUserToRole = function(req, res, next) {
+		var id = parseInt(req.params.id);
+		if (!id || isNaN(id)) {
+			return res.json(400, {error: "Invalid user id"})
+		}
+		
+		var roleId = parseInt(req.params.roleId);
+		if (!roleId || isNaN(roleId)) {
+			return res.json(400, {error: "Invalid role id"});
+		};
+		
+		userService.assignRoleToUser(id, roleId, req.scope).then(function(user) {
+			return res.json(user.roles); //todo: halify this
+		});	
+	}
+	
+	/**
+	 * @api {delete} /users/:id/roles/:roleId/:scope? Remove a role from a user
+	 * @apiName RemoveUserFromRole
+	 * @apiGroup User
+	 * 
+	 * @apiParam {number} id User Id
+	 * @apiParam {number} roleId Role Id
+	 * @apiParam {string} [scope] Remove role from this scope. 
+	 * Leave blank to remove globally
+	 */
+	self.removeUserFromRole = function(req, res, next) {
+		var id = parseInt(req.params.id);
+		if (!id || isNaN(id)) {
+			return res.json(400, {error: "Invalid user id"})
+		}
+		
+		var roleId = parseInt(req.params.roleId);
+		if (!roleId || isNaN(roleId)) {
+			return res.json(400, {error: "Invalid role id"});
+		};
+		
+		userService.removeRoleFromUser(id, roleId, req.scope)
+		.then(function(user) {
+			return res.json(user.roles); //todo: halify this
+		});			
 	}
 	
 	/**
@@ -180,7 +232,7 @@ function UsersController(app, root) {
 	 * @apiGroup User
 	 * 
 	 * @apiParam {number} id User Id
-	 * @apiParam {string} scope Optional. Return permissions available at a particular scope. 
+	 * @apiParam {string} [scope] Optionally return permissions available at a particular scope. 
 	 * If not specified only global permissions are returned.
 	 */
 	self.getPermissions = function(req, res, next) {
