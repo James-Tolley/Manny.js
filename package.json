@@ -3,6 +3,7 @@
   "version": "0.0.1",
   "main": "server.js",
   "license": "unlicensed",
+  "private": true,
   "readme": "README.md",
   "description": "Curious Pastimes Plot Management Application",
   "authors": [
@@ -32,9 +33,19 @@
     "waterline": "^0.10.26"
   },
   "devDependencies": {
+    "apidoc": "^0.13.1",
+    "istanbul": "^0.3.22",
+    "mocha": "^2.3.3",
     "rewire": "^2.3.4",
     "should": "^7.0.4",
     "sinon": "^1.16.1",
     "supertest": "^1.0.1"
+  },
+  "scripts": {
+    "start-test": "node server.js --setup=./test-run/setup.json",
+    "test": "mocha",
+    "test-run": "mocha test-run",
+    "apidoc": "apidoc -i src -o apidoc",
+    "cover": "istanbul cover node_modules/mocha/bin/_mocha -- -R spec"
   }
 }

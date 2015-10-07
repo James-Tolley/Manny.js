@@ -9,7 +9,7 @@ Application provides login via username and password which it exchanges for a Js
 ```
 > git clone https://JamesTolley@bitbucket.org/JamesTolley/skynet.git
 > npm install
-> node server.js
+> npm start
 ```
 
 ## Directory Structure ##
@@ -35,14 +35,8 @@ Application provides login via username and password which it exchanges for a Js
 
 Api documentation can be manually generated using apidoc
 
-If not already installed:
 ```
-npm install apidoc -g
-```
-
-then:
-```
-apidoc -i src/ -o apidoc/
+npm run apidoc
 ```
 
 ## Configuration ##
@@ -129,20 +123,35 @@ Skynet depends on the following packages:
 
 Unit tests and integration tests are written in mocha. 
 
-Unit tests - run
+###Unit tests###
+
+run
 
 ```
-> mocha
+> npm test
 ```
 
-Integration tests - start the application using  ./test-run/setup.json for initial configuration
+Code Coverage
 
 ```
-> node server.js --setup=./test-run/setup.json
+> npm run cover
+```
+
+Coverage report is output to 
+```
+.\coverage\lcov-report\index.html
+```
+
+###Integration tests###
+
+start the application in test mode
+
+```
+> npm run start-test
 ```
 
 then in a seperate console run:
 
 ```
-> mocha test-run
+> npm run test-run
 ```
