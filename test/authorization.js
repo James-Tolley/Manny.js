@@ -5,49 +5,56 @@ var should = require('should'),
 	Promise = require('bluebird'),
 	service = rewire('../src/services/authorization');
 	
-/*global describe, it, beforeEach*/
+/*global describe, it, before*/
 describe('Authorization', function() {
 	
 	var testUser = {
 		id: 1
 	};
 	
-	beforeEach(function() {
-		
-		var fakePermissions = [
-			{id: 1, name: "Permission 1"},
-			{id: 2, name: "Permission 2"},
-			{id: 3, name: "Permission 3"},
-			{id: 4, name: "Permission 4"}
-		]
+	before(function() {
+	
 		var fakeRoles = [
 			{
-				user: 1,
-				role: {
-					id: 1,
-					name: "Role 1"			
-				}
+				id: 1,
+				name: "Role 1",
+				permissions: [{id: 1, name: "localPermission"}]
 			},
 			{
-				user: 1,
-				role: {
-					id: 1,
-					name: "Role 1"
-				},
-				scope: "scope1"
-			},
-			{
-				user: 1,
-				role: {
-					id: 2,
-					name: "Role 2"
-				},
-				scope: "scope1"
+				id: 2,
+				name: "Role 2",
+				permissions: [{id: 2, name: "globalPermission"}]
 			}
 		]
 		
+		var rolesMock = {
+			find: function(ids) {
+				var roles = _.filter(fakeRoles, function(r) {
+					return _.indexOf(ids.id, r.id) >= 0;
+				})
+				var promise = Promise.resolve(roles);
+				promise.populate = function() { return promise; }
+				return promise;
+			}
+		}
+		
+		service.__set__('roles', rolesMock);
+		
+		
+		var fakeUserRoles = [
+			{
+				user: 1,
+				role: 1,
+				scope: "testScope"
+			},
+			{
+				user: 1,
+				role: 2
+			}
+		]
+				
 		var userServiceMock = {
-			getRolesForUser: function() { return Promise.resolve(fakeRoles); }
+			getRolesForUser: function() { return Promise.resolve(fakeUserRoles); }
 		}
 		
 		service.__set__('userService', userServiceMock);

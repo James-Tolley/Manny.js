@@ -19,7 +19,8 @@ var service = {
 	checkPermission: function(user, permissionName, scope) {
 		return service.getPermissionsAtScope(user.id, scope)
 		.then(function(permissions) {
-			return _.find(permissions, {name: permissionName});
+			var found = _.find(permissions, {name: permissionName});
+			return !!found;
 		});
 	},
 	
@@ -31,12 +32,18 @@ var service = {
 	getPermissionsAtScope: function(userId, scope) {
 		return userService.getRolesForUser(userId)
 		.then(function(userRoles) {
-			userRoles = _.filter(userRoles, function(userRole) {
+			var rolesAtScope = _.filter(userRoles, function(userRole) {
 				return (!userRole.scope || userRole.scope == "" || userRole.scope == scope);
 			});
+			return roles.find({id: _.pluck(rolesAtScope, 'role')}).populate('permissions');
+		}).then(function(roles) {
+		
+			var permissions = _.chain(roles)
+			.pluck('permissions')
+			.flatten()
+			.uniq('id')
+			.value();
 			
-			return roles.find({id: _.pluck(userRoles, 'role')}).populate('permissions');
-		}).then(function(permissions) {
 			return permissions;
 		});
 	} 

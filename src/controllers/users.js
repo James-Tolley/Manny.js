@@ -17,8 +17,9 @@ function UsersController(app, root) {
 		users: '',
 		user: '/:id',
 		userPermissions: '/:id/permissions/:scope?',
-		makeAdmin: '/:id/makeadmin',
-		removeAdmin: '/:id/removeadmin'
+		userRoles: '/:id/roles',
+		userRole: '/:id/roles/:roleId/:scope?',
+		admin: '/:id/admin'
 	}
 	
 	self.getRoute = function(route, id) {
@@ -63,24 +64,26 @@ function UsersController(app, root) {
 			
 			if (req.user.isAdmin && req.user.id !== user.id) {
 				if (user.isAdmin) {
-					resource.link('removeadmin', self.getRoute(self.routes.removeAdmin, user.id));
+					resource.link('removeadmin', self.getRoute(self.routes.admin, user.id));
 				} else {
-					resource.link('makeadmin', self.getRoute(self.routes.makeAdmin, user.id));
+					resource.link('makeadmin', self.getRoute(self.routes.admin, user.id));
 				}
-			}			
+			}		
 			
-			userService.getRolesForUser(id).then(function(userRoles) {
-				
-				var embedded = _.map(userRoles, function(ur) {
-					var res = new hal.Resource(ur, rolesController.getRoute(rolesController.routes.role, ur.role));
-					//res.link('delete', self.getRoute(self.routes.deleteRole))
-					return res;
-				});
-				
-				resource.embed("roles", embedded);
-				
-				return res.json(resource);
-			});
+			resource.link('roles', self.getRoute(self.routes.userRoles, user.id));	
+			
+			// userService.getRolesForUser(id).then(function(userRoles) {
+			// 	
+			// 	var embedded = _.map(userRoles, function(ur) {
+			// 		var res = new hal.Resource(ur, rolesController.getRoute(rolesController.routes.role, ur.role));
+			// 		//res.link('delete', self.getRoute(self.routes.deleteRole))
+			// 		return res;
+			// 	});
+			// 	
+			// 	resource.embed("roles", embedded);
+			// 	
+			// 	return res.json(resource);
+			// });
 			
 			
 		}).catch(function(e) {
@@ -157,9 +160,12 @@ function UsersController(app, root) {
 	
 	router.get(self.routes.users, authorize.requirePermission('manageUsers', true), self.getUsers);
 	router.get(self.routes.user, authorize.requirePermission('manageUsers', true), self.getUser);
-	router.post(self.routes.makeAdmin, authorize.requireAdmin, self.makeAdmin);
-	router.post(self.routes.removeAdmin, authorize.requireAdmin, self.removeAdmin);
+	router.post(self.routes.admin, authorize.requireAdmin, self.makeAdmin);
+	router.delete(self.routes.admin, authorize.requireAdmin, self.removeAdmin);
 	router.get(self.routes.userPermissions, authorize.requirePermission('manageUsers', true), self.getPermissions);
+	router.get(self.routes.userRoles, authorize.requirePermission('manageUsers', true), self.getUserRoles);
+	router.post(self.routes.userRole, authorize.requirePermission('manageUsers', true), self.addUserToRole);
+	router.delete(self.routes.userRole, authorize.requirePermission('manageUsers', true), self.removeUserFromRole);
 	app.use(controllerRoot, router);
 }
 
