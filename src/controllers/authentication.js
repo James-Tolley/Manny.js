@@ -4,28 +4,33 @@ var
 	express = require('express'),
 	authenticate = require('../middleware/authentication'),
 	authService = require('../services/authentication'),
-	userService = require('../services/users');
+	userService = require('../services/users'),
+	routing = require('../lib/routing');
 
+var 
+	routes = {
+		login: '/token',
+		register: '/register',
+		me: '/me'
+	},
+	controllerRoot = '';
 /**
  * Authentication Api Actions
  */
-function AuthenticationController(app, root) {
-
-	var 
-		self = this,
-		controllerRoot = root + '',
-		routes = {
-			login: '/token',
-			register: '/register',
-			me: '/me'
-		}
+var controller = {
 		
-	function getRoute(route) {
-		return controllerRoot + route;
-	}		
+	root: controllerRoot,
+	routes: routes,		
+	getRoute: function(route, params) {
+		var url = (controller.root || "") + route;
+		
+		if (params) {
+			url = routing.getRoute(url, params);
+		}
+		return url;
+	},		
 			
-	self.app = app;
-
+	
 	/**
 	 * @api {get} /token Get an authentication token for accessing secured methods
 	 * @apiName Token
@@ -36,7 +41,7 @@ function AuthenticationController(app, root) {
 	 * @apiSuccess user If the authentication details are valid, user details and access token are returned
 	 * @apiError 401 Login failed
 	 */
-	self.token = function(req, res, next) {
+	token : function(req, res, next) {
 		if (!req.user) {
 			return res.json(401, {error: "Login failed"});
 		}
@@ -51,7 +56,7 @@ function AuthenticationController(app, root) {
 		}).catch(function(e) {
 			return next(e);
 		});
-	}
+	},
 
 	/**
 	 * @api {post} /register Register a new account
@@ -66,24 +71,24 @@ function AuthenticationController(app, root) {
 	 * @apiSuccess user Newly created account
 	 * @apiError 400 User model was not valid. See body for error details 
 	 */
-	self.register = function(req, res, next) {
+	register : function(req, res, next) {
 
 		userService.createUser(req.body).then(function(user) {
-			var resource = new hal.Resource(user, getRoute(routes.me));
-			resource.link('login', getRoute(routes.login));
+			var resource = new hal.Resource(user, controller.getRoute(routes.me));
+			resource.link('login', controller.getRoute(routes.login));
 
 			return res.json(resource);
 		}).catch(function(e) {
 			return next(e);
 		});
-	}
+	},
 
 	/**
 	 * @api {get} /me Retrieve current user details
 	 * @apiName Me
 	 * @apiGroup Authentication
 	 */
-	self.me = function(req, res, next) {
+	me : function(req, res, next) {
 		if (!req.user) {
 			return res.json(400, {error: "User not found"});
 		}
@@ -95,29 +100,34 @@ function AuthenticationController(app, root) {
 		}
 
 		return res.json(userInfo);
-	}
+	},
 	
 	// Return available actions for root directory
-	self.getDirectory = function(user) {		
+	getDirectory : function(user) {		
 			
 		if (user) {
 			return [
-				new hal.Link('me', { href: getRoute(routes.me) })
+				new hal.Link('me', { href: controller.getRoute(routes.me) })
 			]
 		}
 	
 		return [
-			new hal.Link('login', {href: getRoute(routes.login) }),
-			new hal.Link('register', {href: getRoute(routes.register) })
+			new hal.Link('login', {href: controller.getRoute(routes.login) }),
+			new hal.Link('register', {href: controller.getRoute(routes.register) })
 		]
-	}	
+	},
 	
-	var router = express.Router();
-	router.post(routes.login, authenticate.basic, self.token);
-	router.post(routes.register, self.register);
-	router.get(routes.me, authenticate.token, self.me);
-
-	app.use(controllerRoot, router);
+	init: function(app, root) {
+		controller.root = (root || "") + controllerRoot;
+		
+		var router = express.Router();
+		router.post(routes.login, authenticate.basic, controller.token);
+		router.post(routes.register, controller.register);
+		router.get(routes.me, authenticate.token, controller.me);
+	
+		app.use(controllerRoot, router);
+		return controller;
+	}
 }
 
-exports.Controller = AuthenticationController;
+module.exports = controller;

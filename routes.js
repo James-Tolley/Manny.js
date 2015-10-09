@@ -1,17 +1,13 @@
 var hal = require('hal'),
 	auth = require('./src/middleware/authentication');
 
-var AuthenticationController = require('./src/controllers/authentication').Controller,
-	RolesController = require('./src/controllers/roles').Controller,
-	UsersController = require('./src/controllers/users').Controller;
-
 var ApiRoutes = function(app, root) {
 
 	var self = this;
 	self.controllers = {
-		authentication: new AuthenticationController(app, root),
-		roles: new RolesController(app, root),
-		users: new UsersController(app, root)
+		authentication: require('./src/controllers/authentication').init(app, root), 
+		roles: require('./src/controllers/roles').init(app, root), 
+		users: require('./src/controllers/users').init(app, root)
 	}
 
 	self.getDirectory = function(user) {

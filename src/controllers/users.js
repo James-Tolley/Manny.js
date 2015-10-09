@@ -6,40 +6,43 @@ var authenticate = require('../middleware/authentication'),
 	_ = require('lodash'),
 	userService = require('../services/users'),
 	authService = require('../services/authorization'),
-	rolesController = require('./roles');
+	rolesController = require('./roles'),
+	routing = require('../lib/routing');
 
-function UsersController(app, root) {
-	
-	var self = this,
-	controllerRoot = root + '/users';
-	
-	self.routes = {
+var
+	controllerRoot = '/users',
+	routes = {
 		users: '',
 		user: '/:id',
 		userPermissions: '/:id/permissions/:scope?',
 		userRoles: '/:id/roles',
 		userRole: '/:id/roles/:roleId/:scope?',
 		admin: '/:id/admin'
-	}
+	};
 	
-	self.getRoute = function(route, id) {
-		var url = controllerRoot + route;
-		if (id) {
-			url = url.replace(':id', id);
+var controller = {
+	
+	root: controllerRoot,
+	routes: routes,
+	getRoute: function(route, params) {
+		var url = (controller.root || "") + route;
+		
+		if (params) {
+			url = routing.getRoute(url, params);
 		}
 		return url;
-	}	
+	},	
 	
 	/**
 	 * @api {get} /users List all users
 	 * @apiName GetUsers
 	 * @apiGroup User
 	 */
-	self.getUsers = function(req, res, next) {
+	getUsers : function(req, res, next) {
 		userService.users().then(function(users) {
-			var resource = new hal.Resource({}, self.getRoute(self.routes.users));
+			var resource = new hal.Resource({}, controller.getRoute(routes.users));
 			var emebedded = _.map(users, function(user) {
-				var res = new hal.Resource(user.toSummary(), self.getRoute(self.routes.user, user.id));
+				var res = new hal.Resource(user.toSummary(), controller.getRoute(routes.user, user.id));
 				return res;
 			});
 			resource.embed("users", emebedded);
@@ -48,7 +51,7 @@ function UsersController(app, root) {
 		}).catch(function(e) {
 			next(e);
 		});
-	}
+	},
 	
 	/**
 	 * @api {get} /users/:id Get a single user
@@ -57,7 +60,7 @@ function UsersController(app, root) {
 	 * 
 	 * @apiParam {number} id User id 
 	 */
-	self.getUser = function(req, res, next) {
+	getUser : function(req, res, next) {
 		var id = parseInt(req.params.id);
 		if (!id || isNaN(id)) {
 			return res.json(400, {error: "Invalid user id"})
@@ -69,24 +72,24 @@ function UsersController(app, root) {
 				return res.json(400, {error: "User not found"});
 			}
 			
-			var url = self.getRoute(self.routes.user, user.id);
+			var url = controller.getRoute(routes.user, user.id);
 			var resource = new hal.Resource(user.toJSON(), url);
 			resource.link('update', url);
 			
 			if (req.user.isAdmin && req.user.id !== user.id) {
 				if (user.isAdmin) {
-					resource.link('removeadmin', self.getRoute(self.routes.admin, user.id));
+					resource.link('removeadmin', controller.getRoute(routes.admin, user.id));
 				} else {
-					resource.link('makeadmin', self.getRoute(self.routes.admin, user.id));
+					resource.link('makeadmin', controller.getRoute(routes.admin, user.id));
 				}
 			}		
 			
-			resource.link('roles', self.getRoute(self.routes.userRoles, user.id));		
+			resource.link('roles', controller.getRoute(routes.userRoles, user.id));		
 			return res.json(resource);		
 		}).catch(function(e) {
 			next(e);
 		})
-	}
+	},
 	
 	/**
 	 * @api {get} /users/:id/roles Get all roles for a user
@@ -95,7 +98,7 @@ function UsersController(app, root) {
 	 * 
 	 * @apiParam {number} id User id
 	 */
-	self.getUserRoles = function(req, res, next) {
+	getUserRoles : function(req, res, next) {
 		var id = parseInt(req.params.id);
 		if (!id || isNaN(id)) {
 			return res.json(400, {error: "Invalid user id"})
@@ -103,9 +106,12 @@ function UsersController(app, root) {
 		
 		userService.getRolesForUser(id).then(function(userRoles) {
 			
-			var resource = new hal.Resource({}, self.getRoute(self.routes.userRoles, id));
-			var templateLink = self.getRoute(self.routes.userRole, id);
-			templateLink = templateLink.replace(':roleId', '{roleId}').replace(':scope?', '{scope}');
+			var resource = new hal.Resource({}, controller.getRoute(routes.userRoles, id));
+			var templateLink = controller.getRoute(routes.userRole, {
+				id: id,
+				roleId: '{roleId}',
+				scope: '{scope}'
+			});
 			
 			resource.link('add', {href: templateLink, templated: true});
 			resource.link('remove', {href: templateLink, templated: true});
@@ -119,7 +125,7 @@ function UsersController(app, root) {
 			
 			return res.json(resource); 
 		});		
-	}
+	},
 	
 	/**
 	 * @api {post} /users/:id/roles/:roleId/:scope? Add a user to a role. 
@@ -130,7 +136,7 @@ function UsersController(app, root) {
 	 * @apiParam {number} roleId Role Id
 	 * @apiParam {string} [scope] Optionally limited role to this scope only.
 	 */
-	self.addUserToRole = function(req, res, next) {
+	addUserToRole : function(req, res, next) {
 		var id = parseInt(req.params.id);
 		if (!id || isNaN(id)) {
 			return res.json(400, {error: "Invalid user id"})
@@ -141,10 +147,10 @@ function UsersController(app, root) {
 			return res.json(400, {error: "Invalid role id"});
 		};
 		
-		userService.assignRoleToUser(id, roleId, req.scope).then(function(user) {
+		userService.assignRoleToUser(id, roleId, req.params.scope).then(function(user) {
 			return res.json(user.roles); //todo: halify this
 		});	
-	}
+	},
 	
 	/**
 	 * @api {delete} /users/:id/roles/:roleId/:scope? Remove a role from a user
@@ -156,7 +162,7 @@ function UsersController(app, root) {
 	 * @apiParam {string} [scope] Remove role from this scope. 
 	 * Leave blank to remove globally
 	 */
-	self.removeUserFromRole = function(req, res, next) {
+	removeUserFromRole : function(req, res, next) {
 		var id = parseInt(req.params.id);
 		if (!id || isNaN(id)) {
 			return res.json(400, {error: "Invalid user id"})
@@ -167,11 +173,11 @@ function UsersController(app, root) {
 			return res.json(400, {error: "Invalid role id"});
 		};
 		
-		userService.removeRoleFromUser(id, roleId, req.scope)
+		userService.removeRoleFromUser(id, roleId, req.params.scope)
 		.then(function(user) {
 			return res.json(user.roles); //todo: halify this
 		});			
-	}
+	},
 	
 	/**
 	 * @api {post} /users/:id/admin Make a user system admin
@@ -180,7 +186,7 @@ function UsersController(app, root) {
 	 * 
 	 * @apiParam {number} id User id
 	 */
-	self.makeAdmin = function(req, res, next) {
+	makeAdmin : function(req, res, next) {
 		var id = parseInt(req.params.id);
 		if (!id || isNaN(id)) {
 			return res.json(400, {error: "Invalid user id"})
@@ -196,7 +202,7 @@ function UsersController(app, root) {
 				return res.json(user);
 			});
 		});	
-	}
+	},
 	
 	/**
 	 * @api {delete} /users/:id/admin Remove admin from a user
@@ -205,7 +211,7 @@ function UsersController(app, root) {
 	 * 
 	 * @apiParam {number} id User Id
 	 */
-	self.removeAdmin = function(req, res, next) {
+	removeAdmin : function(req, res, next) {
 		var id = parseInt(req.params.id);
 		if (!id || isNaN(id)) {
 			return res.json(400, {error: "Invalid user id"})
@@ -225,7 +231,7 @@ function UsersController(app, root) {
 				return res.json(user);
 			});
 		});			
-	}
+	},
 	
 	/**
 	 * @api {get} /users/:id/permissions/:scope? Get all permissions a user has at a particular scope
@@ -236,7 +242,7 @@ function UsersController(app, root) {
 	 * @apiParam {string} [scope] Optionally return permissions available at a particular scope. 
 	 * If not specified only global permissions are returned.
 	 */
-	self.getPermissions = function(req, res, next) {
+	getPermissions : function(req, res, next) {
 		var id = parseInt(req.params.id);
 		if (!id || isNaN(id)) {
 			return res.json(400, {error: "Invalid user id"})
@@ -247,31 +253,37 @@ function UsersController(app, root) {
 		.then(function(permissions) {
 			return res.json(permissions);
 		})
-	}
+	},
 	
-	self.getDirectory = function(user) {		
+	getDirectory : function(user) {		
 			
 		if (user && user.isAdmin) {
 			return [
-				new hal.Link('users', { href: self.getRoute(self.routes.users) })
+				new hal.Link('users', { href: controller.getRoute(routes.users) })
 			];
 		}
 	
 		return [];
-	}			
+	},			
 	
-	var router = express.Router();
-	router.use(authenticate.token);
-	
-	router.get(self.routes.users, authorize.requirePermission('manageUsers', true), self.getUsers);
-	router.get(self.routes.user, authorize.requirePermission('manageUsers', true), self.getUser);
-	router.post(self.routes.admin, authorize.requireAdmin, self.makeAdmin);
-	router.delete(self.routes.admin, authorize.requireAdmin, self.removeAdmin);
-	router.get(self.routes.userPermissions, authorize.requirePermission('manageUsers', true), self.getPermissions);
-	router.get(self.routes.userRoles, authorize.requirePermission('manageUsers', true), self.getUserRoles);
-	router.post(self.routes.userRole, authorize.requirePermission('manageUsers', true), self.addUserToRole);
-	router.delete(self.routes.userRole, authorize.requirePermission('manageUsers', true), self.removeUserFromRole);
-	app.use(controllerRoot, router);
+	init: function(app, root) {
+		controller.root = (root || "") + controllerRoot;
+		
+		var router = express.Router();
+		router.use(authenticate.token);
+		
+		router.get(routes.users, authorize.requirePermission('manageUsers', true), controller.getUsers);
+		router.get(routes.user, authorize.requirePermission('manageUsers', true), controller.getUser);
+		router.post(routes.admin, authorize.requireAdmin, controller.makeAdmin);
+		router.delete(routes.admin, authorize.requireAdmin, controller.removeAdmin);
+		router.get(routes.userPermissions, authorize.requirePermission('manageUsers', true), controller.getPermissions);
+		router.get(routes.userRoles, authorize.requirePermission('manageUsers', true), controller.getUserRoles);
+		router.post(routes.userRole, authorize.requirePermission('manageUsers', true), controller.addUserToRole);
+		router.delete(routes.userRole, authorize.requirePermission('manageUsers', true), controller.removeUserFromRole);
+		app.use(controllerRoot, router);
+		
+		return controller;
+	}
 }
 
-exports.Controller = UsersController;
+module.exports = controller;

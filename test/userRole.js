@@ -22,6 +22,9 @@ describe("Users", function() {
 				roles: [] 
 			};
 			userMock.save = function() { return this;}
+			userMock.roles.add = function(r) {
+				userMock.roles.push(r);
+			}
 			
 			var findMock = Promise.resolve(userMock);
 			findMock.populate = function() { return this; }	
