@@ -5,7 +5,8 @@ var
 	authenticate = require('../middleware/authentication'),
 	authService = require('../services/authentication'),
 	userService = require('../services/users'),
-	routing = require('../lib/routing');
+	routing = require('../lib/routing'),
+	ServiceError = require('../services/ServiceError');
 
 var 
 	routes = {
@@ -46,14 +47,16 @@ var controller = {
 			return res.json(401, {error: "Login failed"});
 		}
 
-		Promise.resolve(authService.issueToken(req.user)).then(function(token) {
+		authService.issueToken(req.user).then(function(token) {
+			
 			return res.json({
 				user_id: req.user.id,
 				user_name: req.user.name,
 				email: req.user.email,
 				access_token: token
 			});	
-		}).catch(function(e) {
+
+		}).catch(function(e) { 
 			return next(e);
 		});
 	},
@@ -78,9 +81,11 @@ var controller = {
 			resource.link('login', controller.getRoute(routes.login));
 
 			return res.json(resource);
+		}).catch(ServiceError, function(e) {
+			return res.json(400, { error: e.message });
 		}).catch(function(e) {
 			return next(e);
-		});
+		})
 	},
 
 	/**

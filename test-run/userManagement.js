@@ -72,16 +72,82 @@ describe('User management', function() {
 			});					
 		});
 		
-		it('Should let me view user roles', function(done) {
-			request(url)
-			.get(links.userRoles.href)
-			.set('Authorization', 'JWT ' + accessToken)
-			.expect(200)
-			.end(function(err, res) {
-				if (err) { throw err; }
-				res.body._embedded.should.have.property('roles');
-				done();
-			});	
+		describe('User roles', function() {
+		
+			it('Should let me view user roles', function(done) {
+				request(url)
+				.get(links.userRoles.href)
+				.set('Authorization', 'JWT ' + accessToken)
+				.expect(200)
+				.end(function(err, res) {
+					if (err) { throw err; }
+					res.body._embedded.should.have.property('roles');
+					links.addRole = res.body._links.add;
+					links.removeRole = res.body._links.remove;
+					done();
+				});	
+			});
+			
+			describe('Assigning roles', function() {
+				
+				var testRole;
+				
+				before(function(done) {
+					
+					//create a role we can use
+					request(url)
+					.get(apiRoot)
+					.set('Authorization', 'JWT ' + accessToken)
+					.end(function(err, res) {
+						if (err) { throw err; }
+						
+						var newRole = {
+							name: 'role_' + Date.now()
+						}
+						
+						request(url)
+						.post(res.body._links.roles.href)
+						.send(newRole)
+						.set('Authorization', 'JWT ' + accessToken)
+						.expect(200)
+						.end(function(err, res) {
+							if (err) { throw err; }
+							testRole = res.body;
+							done();
+						});
+					});
+					
+				});
+				
+				it('Should let me assign a role globally', function(done) {
+					var addRole = links.addRole.href
+						.replace('{roleId}', testRole.id)
+						.replace('{scope}', '');
+						
+					request(url)
+					.post(addRole)
+					.set('Authorization', 'JWT ' + accessToken)
+					.expect(200)
+					.end(function(err, res) {
+						done();
+					});
+				});
+				
+				it('Should let me assign a role at scope', function(done) {
+					var addRole = links.addRole.href
+						.replace('{roleId}', testRole.id)
+						.replace('{scope}', 'scope1');
+						
+					request(url)
+					.post(addRole)
+					.set('Authorization', 'JWT ' + accessToken)
+					.expect(200)
+					.end(function(err, res) {
+						done();
+					});					
+				})
+				
+			});
 		});
 		
 	});

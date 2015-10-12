@@ -7,6 +7,8 @@ function ServiceError(message) {
 	this.name = "ServiceError";
 	this.message = (message || "");
 }
-ServiceError.prototype = Error.prototype;
+ServiceError.prototype = Object.create(Error.prototype, {
+	constructor: {value: ServiceError} 
+});
 
 module.exports = ServiceError;
