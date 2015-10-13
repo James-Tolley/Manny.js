@@ -72,9 +72,13 @@ Default Configuration file is in `/config/default.json`
         // JSON Web Token configuration
         "jwt": {
             "secretOrKey": "my-secret-key", 
-            "issuer": "skynet.jamestolley.net", 
-            "expiresInSeconds": 3600
-        }
+            "issuer": "skynet.example.com", 
+            "expiresIn": 3600
+        },
+        // User password configuration
+		"password": {
+			"minLength": 4
+		}        
     }
 }
 ```

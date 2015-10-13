@@ -19,7 +19,7 @@
 		"jwt": {
 			"secretOrKey": "my-secret-key",
 			"issuer": "skynet.jamestolley.net",
-			"expiresInSeconds": 3600
+			"expiresIn": 3600
 		},
 		"password": {
 			"minLength": 4

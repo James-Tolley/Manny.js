@@ -22,18 +22,8 @@ function boot() {
 	app.use(bodyParser.json());	
 	app.use(passport.initialize());
 	
-	
 	var apiRoot = config.get('server.root');
-	
-	
 	require('./routes')(app, apiRoot);
-	
-	app.use(function(err, req, res, next) {
-		if (err.name == 'ServiceError') {
-			return res.json(400, { error: err.message } );
-		}
-		return next(err);
-	});
 	
 	var port = config.get('server.port');
 	app.listen(port);

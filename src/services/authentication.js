@@ -49,7 +49,7 @@ var service = {
 
 		// todo: does config handle these not existing? Set defaults
 		var options = {
-			expiresInSeconds: config.get('security.jwt.expiresInSeconds'),
+			expiresIn: config.get('security.jwt.expiresIn'),
 			issuer: config.get('security.jwt.issuer')
 		};
 

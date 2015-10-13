@@ -6,7 +6,8 @@ var
 	authenticate = require('../middleware/authentication'),
 	authorize = require('../middleware/authorization'),
 	_ = require('lodash'),
-	routing = require('../lib/routing');
+	routing = require('../lib/routing'),
+	ServiceError = require('../services/ServiceError');
 
 var 
 	routes = {
@@ -79,7 +80,8 @@ var controller = {
 	 * @apiParam {string} name Name of new role
 	 */
 	createRole : function(req, res, next) {
-		roleService.createRole(req.body.name || req.body).then(function(role) {
+		var roleName = req.body.name || req.body;
+		roleService.createRole(roleName).then(function(role) {
 			var url = controller.getRoute(routes.role, role.id);
 			var resource = new hal.Resource(role, url);
 			resource.link('delete', url);
@@ -108,6 +110,8 @@ var controller = {
 	 * @apiGroup Role
 	 * 
 	 * @apiParam {string} name New name of role
+	 * 
+	 * @apiError 400 Update model invalid
 	 */	
 	updateRole : function(req, res, next) {
 		var id = parseInt(req.params.id);
@@ -118,6 +122,8 @@ var controller = {
 		
 		roleService.updateRole(id, req.body).then(function(role) {
 			return res.json(role);
+		}).catch(ServiceError, function(e) {
+			return res.json(400, { error: e.message })
 		}).catch(function(e) {
 			next(e);
 		});

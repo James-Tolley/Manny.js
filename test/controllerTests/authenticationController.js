@@ -51,7 +51,7 @@ describe('AuthenticationController', function() {
 	
 	describe('Registering', function() {
 		
-		it('Should return BadRequest on an error', function() {
+		it('Should return 400 on a model error', function() {
 			var userServiceMock = {
 				createUser: function(model) {
 					return Promise.reject(new ServiceError('Failure'));
@@ -102,7 +102,7 @@ describe('AuthenticationController', function() {
 			});				
 		});
 		
-
 	});
+
 	
 });

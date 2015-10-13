@@ -15,6 +15,7 @@ var
 		me: '/me'
 	},
 	controllerRoot = '';
+	
 /**
  * Authentication Api Actions
  */
@@ -49,12 +50,15 @@ var controller = {
 
 		authService.issueToken(req.user).then(function(token) {
 			
-			return res.json({
+			var user = {
 				user_id: req.user.id,
 				user_name: req.user.name,
 				email: req.user.email,
 				access_token: token
-			});	
+			}			
+			var resource = new hal.Resource(user, controller.getRoute(routes.me));
+			
+			return res.json(resource);
 
 		}).catch(function(e) { 
 			return next(e);
@@ -94,17 +98,17 @@ var controller = {
 	 * @apiGroup Authentication
 	 */
 	me : function(req, res, next) {
-		if (!req.user) {
-			return res.json(400, {error: "User not found"});
+		if (!req.user) { 
+			return res.json(401, {error: "Unauthorized"})
 		}
 
-		var userInfo = {
-			user_id : req.user.id,
-			user_name : req.user.name,
-			email : req.user.email
-		}
-
-		return res.json(userInfo);
+		var user = {
+			user_id: req.user.id,
+			user_name: req.user.name,
+			email: req.user.email,
+		}	
+		var resource = new hal.Resource(user, controller.getRoute(routes.me));
+		return res.json(resource);
 	},
 	
 	// Return available actions for root directory
