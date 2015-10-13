@@ -122,26 +122,7 @@ describe('Account creation', function() {
 			}).catch(function(err) {
 				err.message.should.match(/email/i);
 			});	
-		});
-		
-		it('Should not allow password with a colon', function() {
-			var usersMock = {
-					findOne: sinon.stub().returns(Promise.resolve(null)),
-					create: sinon.stub().returnsArg(0)
-				}
-			
-			service.__set__("users", usersMock);
-			
-			return service.createUser({
-				email: 'test@example.com',
-				password: 'secret:password',
-				confirmPassword: 'secret:password'
-			}).then(function(user) {
-				throw new Error("Failed");
-			}).catch(function(err) {
-				err.message.should.match(/password/i);
-			});	
-		});		
+		});	
 				
 		it('Should reject missing password', function() {
 			var usersMock = {

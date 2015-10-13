@@ -63,10 +63,13 @@ var service = {
 	 * 
 	 * @return true if email is valid, false otherwise
 	 */
-	validEmail: function(email) {
+	checkEmail: function(email) {
+		if (!email) { return "Email address is required" }
+		
 		//http://stackoverflow.com/questions/46155/validate-email-address-in-javascript
 		var regex = /^[a-z0-9!#$%&'*+\/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+\/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?$/i;
-		return regex.test(email);	
+		
+		if (!regex.test(email)) { return "Email address is not valid" };	
 	},
 	
 	/**
@@ -75,10 +78,13 @@ var service = {
 	 * @returns {string} Empty string if password is valid, otherwise an error message
 	 */
 	checkPassword: function(password) {
-		//Don't allow colons as they can't be used in basic auth headers
-		if (password.indexOf(':') > 0) {
-			return "Password cannot contain a ':'";
-		}
+		//todo: Add password restrictions via config
+		var maxPasswordLength = 512; // Sanity check to avoid hashing DOS.
+		
+		if (!password) { return "Password is required" }
+		if (password.length > maxPasswordLength) { return "Password must be less than " + maxPasswordLength + " characters"}
+		
+		return "";
 	},
 		
 	/**
@@ -89,9 +95,11 @@ var service = {
 	 */
 	validateNewUserModel: function(model) {
 
-		if (!model.email) { return Promise.reject(new ServiceError("Email address is required")); }
-		if (!service.validEmail(model.email)) { return Promise.reject(new ServiceError("Email address is not valid")); }
-		if (!model.password) { return Promise.reject( new ServiceError("Password is required")); }
+		var emailError = service.checkEmail(model.email);
+		if (emailError) { return Promise.reject(new ServiceError(emailError)); }
+		// if (!model.email) { return Promise.reject(new ServiceError("Email address is required")); }
+		// if (!service.validEmail(model.email)) { return Promise.reject(new ServiceError("Email address is not valid")); }
+		//if (!model.password) { return Promise.reject( new ServiceError("Password is required")); }
 		
 		var passwordError = service.checkPassword(model.password);
 		if (passwordError) { return Promise.reject(new ServiceError(passwordError)); }

@@ -42,7 +42,6 @@ describe('AuthenticationController', function() {
 			controller.token(req, res, next);
 			
 			return res.then(function(response) {
-				console.log(response);
 				response.body.should.have.property('access_token');
 				response.body.access_token.should.equal('token');
 			});		
