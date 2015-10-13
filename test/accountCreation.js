@@ -142,6 +142,47 @@ describe('Account creation', function() {
 			});	
 		});	
 		
+		it('Should reject password if it is too short', function() {
+			var usersMock = {
+					findOne: sinon.stub().returns(Promise.resolve(null)),
+					create: sinon.stub().returnsArg(0)
+				}
+			
+			service.__set__("users", usersMock);
+			
+			return service.createUser({
+				email: 'test@example.com',
+				password: 'a',
+				confirmPassword: 'a'
+			}).then(function(user) {
+				throw new Error("Failed");
+			}).catch(function(err) {
+				err.message.should.match(/at least/i);
+			});				
+		});
+		
+		it('Should reject ridiculously long passwords', function() {
+			
+			var sillyPassword = Array(1000).join('x');
+			
+			var usersMock = {
+					findOne: sinon.stub().returns(Promise.resolve(null)),
+					create: sinon.stub().returnsArg(0)
+				}
+			
+			service.__set__("users", usersMock);
+			
+			return service.createUser({
+				email: 'test@example.com',
+				password: sillyPassword,
+				confirmPassword: sillyPassword
+			}).then(function(user) {
+				throw new Error("Failed");
+			}).catch(function(err) {
+				err.message.should.match(/less than/i);
+			});				
+		})
+		
 		it('Should reject if password and confirmation password do not match', function() {
 			var usersMock = {
 					findOne: sinon.stub().returns(Promise.resolve(null)),

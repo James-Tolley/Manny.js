@@ -3,6 +3,7 @@ var
 	Promise = require('bluebird'),
 	_ = require('lodash'),
 	crypto = require('crypto'),
+	config = require('config'),
 	roleService = require('./roles'),
 	ServiceError = require('./ServiceError');
 	
@@ -78,11 +79,18 @@ var service = {
 	 * @returns {string} Empty string if password is valid, otherwise an error message
 	 */
 	checkPassword: function(password) {
-		//todo: Add password restrictions via config
-		var maxPasswordLength = 512; // Sanity check to avoid hashing DOS.
+		var maxPasswordLength = 512, // Sanity check to avoid hashing DOS.
+			minPasswordLength = 1,
+			minPasswordLengthKey = 'security.password.minLength'; 
+		
+		if (config.has(minPasswordLengthKey)) {
+			// Stop silly things like 0 or negative lengths
+			minPasswordLength = Math.max(minPasswordLength, config.get(minPasswordLengthKey));
+		}
 		
 		if (!password) { return "Password is required" }
 		if (password.length > maxPasswordLength) { return "Password must be less than " + maxPasswordLength + " characters"}
+		if (password.length < minPasswordLength) { return "Password must be at least " + minPasswordLength + " characters"}
 		
 		return "";
 	},
@@ -97,10 +105,7 @@ var service = {
 
 		var emailError = service.checkEmail(model.email);
 		if (emailError) { return Promise.reject(new ServiceError(emailError)); }
-		// if (!model.email) { return Promise.reject(new ServiceError("Email address is required")); }
-		// if (!service.validEmail(model.email)) { return Promise.reject(new ServiceError("Email address is not valid")); }
-		//if (!model.password) { return Promise.reject( new ServiceError("Password is required")); }
-		
+
 		var passwordError = service.checkPassword(model.password);
 		if (passwordError) { return Promise.reject(new ServiceError(passwordError)); }
 		
