@@ -9,14 +9,14 @@ var should = require('should'),
 	ServiceError = require('../../src/services/ServiceError');
 	
 /*global describe, it, before*/
-describe('AuthenticationController', function() {
+describe('Authentication Controller', function() {
 
 	var next = function(e) {
 		console.log(e);
 		throw e;
 	}
 	
-	describe('Access Token', function() {
+	describe('Login', function() {
 		
 		it('Should return 401 if not logged in', function() {
 			var req = {},

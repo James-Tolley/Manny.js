@@ -7,17 +7,15 @@ var authService = require('../services/authorization');
 */
 exports.requirePermission = function(permissionName, allowAdmin) {
 	return function(req, res, next) {
-		if (allowAdmin && req.user.isAdmin) {
-			next();
-		} else {
-			authService.checkPermission(req.user, permissionName, req.authorizationScope)
-			.then(function(granted) {
-				if (granted) { next() }
-				else {
-					res.status(403).send('Access denied');
-				}
-			});
-		}
+	
+		authService.checkPermission(req.user, permissionName, req.authorizationScope, allowAdmin)
+		.then(function(granted) {
+			if (granted) { next() }
+			else {
+				res.status(403).send('Access denied');
+			}
+		});
+	
 	}
 }
 	

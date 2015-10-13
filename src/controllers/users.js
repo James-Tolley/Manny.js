@@ -249,13 +249,13 @@ controller.getPermissions = function(req, res, next) {
 	
 controller.getDirectory = function(user) {		
 		
-	if (user && user.isAdmin) {
-		return [
-			new hal.Link('users', { href: controller.getRoute(routes.users) })
-		];
-	}
-
-	return [];
+	return authService.checkPermission(user, 'manageUsers', '', true)
+	.then(function(granted) {
+		return granted ? 
+			[
+				new hal.Link('users', { href: controller.getRoute(routes.users) })
+			] : []
+	});
 }
 
 controller.init = function(app, root) {

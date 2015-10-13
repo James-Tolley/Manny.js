@@ -1,4 +1,4 @@
-var Controller = require('../src/controllers/Controller');
+var Controller = require('../../src/controllers/Controller');
 
 /*global describe, it*/
 describe("Controller", function() {

@@ -5,6 +5,7 @@ var
 	roleService = require('../services/roles'),
 	authenticate = require('../middleware/authentication'),
 	authorize = require('../middleware/authorization'),
+	authorizationService = require('../services/authorization'),
 	_ = require('lodash'),
 	Controller = require('./Controller'),
 	ServiceError = require('../services/ServiceError');
@@ -127,15 +128,18 @@ controller.deleteRole = function(req, res, next) {
 	return res.json(501, req.params.id);
 }
 	
+/**
+ * Get controller route directory for a given user
+ * @returns a promise
+ */
 controller.getDirectory = function(user) {		
-		
-	if (user && user.isAdmin) {
-		return [
-			new hal.Link('roles', { href: controller.getRoute(routes.roles) })
-		];
-	}
-
-	return [];
+	return authorizationService.checkPermission(user, 'manageRoles', '', true)
+	.then(function(granted) {
+		return granted ? 
+			[
+				new hal.Link('roles', { href: controller.getRoute(routes.roles) })
+			] : []
+	});
 }
 	
 controller.init = function(app, root) {

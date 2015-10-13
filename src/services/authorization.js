@@ -14,9 +14,18 @@ var service = {
 	 * Check that a user has a permission within a given scope.
 	 * @param user Requesting user
 	 * @param permissionName Name of permission required
-	 * @scope scope in which permission is required. If this is blank then permission is required globally.
+	 * @param scope scope in which permission is required. If this is blank then permission is required globally.
+	 * @param allowAdmin set to truthy to automatically allow admin users
+	 * 
+	 * @returns Promise 
 	 */
-	checkPermission: function(user, permissionName, scope) {
+	checkPermission: function(user, permissionName, scope, allowAdmin) {
+		if (!user) { return Promise.resolve(false); }
+		
+		if (allowAdmin && user.isAdmin) {
+			return Promise.resolve(true);
+		}
+		
 		return service.getPermissionsAtScope(user.id, scope)
 		.then(function(permissions) {
 			var found = _.find(permissions, {name: permissionName});

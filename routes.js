@@ -1,5 +1,6 @@
 var hal = require('hal'),
-	auth = require('./src/middleware/authentication');
+	auth = require('./src/middleware/authentication'),
+	Promise = require('bluebird');
 
 var ApiRoutes = function(app, root) {
 
@@ -11,32 +12,34 @@ var ApiRoutes = function(app, root) {
 	}
 
 	self.getDirectory = function(user) {
-		var directory = [];
+		var directoryPromises = [];
 		for (var name in self.controllers) {
-			var controller = self.controllers[name];
-
-			if (controller.getDirectory) {
-				var entries = controller.getDirectory(user);
-				directory = directory.concat(entries);
-			}
+			var controller = self.controllers[name];			
+			directoryPromises.push(controller.getDirectory(user));
 		}
+		
+		return Promise.all(directoryPromises)
+		.then(function(entryArray) {
 
-		return directory;
+			var directory = [].concat.apply([], entryArray);
+			return directory;			
+			
+		});
 	},
 
 
 	self.listRoutes = function(req, res) {
 
-		var resource = new hal.Resource({}, req.url);
-
-		var directory = self.getDirectory(req.user);
-		for (var i = 0; i < directory.length; i++) {
-			var link = directory[i];
-
-			resource.link(link);
-		}		
-
-		return res.json(resource);
+		self.getDirectory(req.user)
+		.then(function(directory) {
+			var resource = new hal.Resource({}, req.url);
+			for (var i = 0; i < directory.length; i++) {
+				var link = directory[i];
+	
+				resource.link(link);
+			}				
+			return res.json(resource);
+		});
 	}
 	
 	app.get(root || '/', auth.optional, self.listRoutes);
