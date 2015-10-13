@@ -46,7 +46,7 @@ Configuration is done via [config.js](https://github.com/lorenwest/node-config).
 Default Configuration file is in `/config/default.json`
 ```
 {
-    // application server configuration*
+    // application server configuration
     "server": {
         "port": 1337 // http port app should listen on
         "root": "" // root url for api controllers. Do not use trailing slashes. Leave blank or path with leading slash only "/path/api"

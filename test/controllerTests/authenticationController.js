@@ -3,6 +3,7 @@ var should = require('should'),
 	sinon = require('sinon'),
 	rewire = require('rewire'),
 	Promise = require('bluebird'),
+	_ = require('lodash'),
 	mockResponse = require('./lib/mockResponse'),
 	controller = rewire('../../src/controllers/authentication'),
 	ServiceError = require('../../src/services/ServiceError');
@@ -103,6 +104,69 @@ describe('AuthenticationController', function() {
 		});
 		
 	});
+	
+	describe('Current User', function() {
+		 it('Should provide details of the logged in user', function() {
+			 var req = {
+			 	user: {
+				 	id: 1,
+					name: 'test',
+					email: 'test@example.com'
+				}
+			 },
+			 res = mockResponse();
+			 
+			 controller.me(req, res, next);
+			 return res.then(function(response) {
+				 response.body.should.have.property('user_id', 1);
+			 });
+		 });
+		 
+		 it('Should return unauthorized if there is no current user', function() {
+			 var req = {},
+			 res = mockResponse();
+			 
+			 controller.me(req, res, next);
+			 return res.then(function(response) {
+				 response.status.should.equal(401);
+			 });			 
+		 })
+	});
+	
+	describe('Directory', function() {
+		
+		it('Should return an array of links', function() {
+			 var dir = controller.getDirectory();
+			 dir.should.be.an.instanceOf(Array);
+		});
+		
+		describe('When logged in', function() {
+			it('Should return link to current user', function() {
+				
+				var dir = controller.getDirectory({id: 1});
+				var me = _.find(dir, {'rel': 'me'});
+				
+				should.exist(me);
+			});
+		});
+		
+		describe('When not logged in', function() {
+			it('Should return link to log in', function() {
+				var dir = controller.getDirectory();
+				var login = _.find(dir, {rel: 'login'});
+				
+				should.exist(login);
+			});
+			
+			it('Should return link to register an account', function() {
+				var dir = controller.getDirectory();
+				var register = _.find(dir, {rel: 'register'});
+				
+				should.exist(register);	
+			});			
+		});
+	})
+	
 
 	
 });
