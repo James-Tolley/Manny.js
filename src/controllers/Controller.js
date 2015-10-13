@@ -55,4 +55,19 @@ function getRoute(url, params) {
 	return url;	
 }
 
-exports.getRoute = getRoute;
+function Controller(controllerRoot) {
+	
+	var self = this;
+	self.root = controllerRoot;
+}
+
+Controller.prototype.getRoute = function(route, routeParams) {
+	var url = (this.root || "") + route;
+	
+	if (routeParams) {
+		url = getRoute(url, routeParams);
+	}
+	return url;	
+}
+
+module.exports = Controller;
