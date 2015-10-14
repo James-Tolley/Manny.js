@@ -154,9 +154,38 @@ var service = {
 				throw new ServiceError("Cannot mix global and scopeable permissions in a single role");
 			}
 			
-			role.permissions.push(permission);
+			role.permissions.add(permission);
 			return role.save();
-		})
+		});
+	},
+	
+	/**
+	 * Remove permission from a role
+	 * @param {string} roleName Name of role to remove permission from
+	 * @param {string} permissioName name of permission to remove
+	 * 
+	 * @return Promise which resolves with the updated role model
+	 * @throws {ServiceError} Role does not exist
+	 * @throws {ServiceError} Permission does not exist
+	 * @throws {ServiceError} Role does not have this permission
+	 */
+	removePermission: function(roleName, permissionName) {
+		return Promise.all([
+			roles.findOne({name: roleName}).populate('permissions'),
+			permissions.findOne({name: permissionName})
+		])
+		.spread(function(role, permission) {
+			if (!role) { throw new ServiceError("Role does not exist"); }
+			if (!permission) { throw new ServiceError("Permission does not exist"); }
+			
+			var existingPermission = _.find(role.permissions, { name: permissionName });
+			if (!existingPermission) {
+				throw new ServiceError("Role does not have this permission");
+			}			
+			
+			role.permissions.remove(existingPermission.id);
+			return role.save();
+		});
 	}
 }
 

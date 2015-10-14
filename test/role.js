@@ -2,6 +2,7 @@ var should = require('should'),
 	sinon = require('sinon'),
 	rewire = require('rewire'),
 	Promise = require('bluebird'),
+	ServiceError = require('../src/services/ServiceError'),
 	service = rewire('../src/services/roles');
 	
 /*global describe, before, it*/
@@ -156,12 +157,14 @@ describe('Permission management', function() {
 			findOne : sinon.stub().returns(Promise.resolve({id: 1, name: 'permission one'}))
 		};
 
-		var save = sinon.stub().returns(Promise.resolve(true)); 
+		var permissions = [];
+		permissions.add = sinon.spy();
+		 
 		var rolePromise = Promise.resolve({
 			id: 1, 
 			name: 'role one', 
-			permissions: [],
-			save: save
+			permissions: permissions,
+			save: function() { return Promise.resolve(true); }
 		});
 		rolePromise.populate = function(name) {
 			return this;
@@ -174,7 +177,7 @@ describe('Permission management', function() {
 		service.__set__('permissions', permissionMock);
 		
 		return service.grantPermission('role one', 'permission one').then(function() {
-			save.calledOnce.should.be.true();
+			permissions.add.calledOnce.should.be.true();
 		})
 	});
 	
@@ -330,5 +333,110 @@ describe('Permission management', function() {
 		}).catch(function(err) {
 			err.message.should.match(/exist/i)
 		});			
-	});				
+	});	
+	
+	it('Can remove a permission from a role', function() {
+		
+		var permissionMock = {
+			findOne : function() { return Promise.resolve({id: 1, name: 'permission one'}); }
+		};
+		var permissions = [{id: 1, name: 'permission one'}];
+		permissions.remove = sinon.spy(); 
+
+		var rolePromise = Promise.resolve({
+			id: 1, 
+			name: 'role one', 
+			permissions: permissions,
+			save: function() { return Promise.resolve(true); }
+		});
+		rolePromise.populate = function(name) {
+			return this;
+		}			
+		var roleMock = {
+			findOne	: function() { return rolePromise; }
+		}
+		
+		service.__set__('roles', roleMock);
+		service.__set__('permissions', permissionMock);
+		
+		return service.removePermission('role one', 'permission one').then(function() {
+			permissions.remove.calledOnce.should.be.true();
+		});
+	});	
+	
+	it('Cannot remove a permission a role does not have', function() {
+		var permissionMock = {
+			findOne : function() { return Promise.resolve({id: 1, name: 'permission one'}); }
+		};
+		var rolePromise = Promise.resolve({
+			id: 1, 
+			name: 'role one', 
+			permissions: [],
+			save: function() { return Promise.resolve(true); }
+		});
+		rolePromise.populate = function(name) {
+			return this;
+		}			
+		var roleMock = {
+			findOne	: function() { return rolePromise; }
+		}
+		
+		service.__set__('roles', roleMock);
+		service.__set__('permissions', permissionMock);
+		
+		return service.removePermission('role one', 'permission one').then(function() {
+			throw new Error("Failed");
+		}).catch(ServiceError, function(e) {
+			e.message.should.match(/does not have/i);
+		});
+	});
+	
+	it('Cannot remove a permission that does not exist', function() {
+		var permissionMock = {
+			findOne : function() { return Promise.resolve(null); }
+		};
+		var rolePromise = Promise.resolve({
+			id: 1, 
+			name: 'role one', 
+			permissions: [],
+			save: function() { return Promise.resolve(true); }
+		});
+		rolePromise.populate = function(name) {
+			return this;
+		}			
+		var roleMock = {
+			findOne	: function() { return rolePromise; }
+		}
+		
+		service.__set__('roles', roleMock);
+		service.__set__('permissions', permissionMock);
+		
+		return service.removePermission('role one', 'permission one').then(function() {
+			throw new Error("Failed");
+		}).catch(ServiceError, function(e) {
+			e.message.should.match(/does not exist/i);
+		});		
+	});
+	
+	it('Cannot remove a permission from a role that does not exist', function() {
+		var permissionMock = {
+			findOne : function() { return Promise.resolve({id: 1, name: 'permission one'}); }
+		};
+		var rolePromise = Promise.resolve(null);
+		rolePromise.populate = function(name) {
+			return this;
+		}			
+		var roleMock = {
+			findOne	: function() { return rolePromise; }
+		}
+		
+		service.__set__('roles', roleMock);
+		service.__set__('permissions', permissionMock);
+		
+		return service.removePermission('role one', 'permission one').then(function() {
+			throw new Error("Failed");
+		}).catch(ServiceError, function(e) {
+			e.message.should.match(/does not exist/i);
+		});				
+	});
 });
