@@ -45,6 +45,6 @@
     "test": "mocha",
     "test-run": "mocha test-run",
     "apidoc": "apidoc -i src -o apidoc",
-    "cover": "istanbul cover node_modules/mocha/bin/_mocha -- -R spec"
+    "cover": "istanbul cover -x \"**/collections/**\" -x \"**/middleware/**\" node_modules/mocha/bin/_mocha -- -R spec"
   }
 }

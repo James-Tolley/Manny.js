@@ -4,6 +4,7 @@ var should = require('should'),
 	rewire = require('rewire'),
 	_ = require('lodash'),
 	Promise = require('bluebird'),
+	ServiceError = require('../src/services/ServiceError'),
 	userService = rewire('../src/services/users');
 	
 /*global describe, beforeEach, it*/
@@ -11,7 +12,8 @@ describe("Users", function() {
 	
 	var testRole = {
 		id: 1,
-		name: "Test Role"
+		name: "Test Role",
+		permissions: [{id: 1, name: 'localPermission', isGlobal: false}]
 	};
 	
 	describe("Adding roles", function() {
@@ -26,11 +28,18 @@ describe("Users", function() {
 				userMock.roles.push(r);
 			}
 			
-			var findMock = Promise.resolve(userMock);
-			findMock.populate = function() { return this; }	
+			var findUserMock = Promise.resolve(userMock);
+			findUserMock.populate = function() { return this; }	
 			
 			var usersMock = {
-				findOne: function() { return findMock; }
+				findOne: function() { return findUserMock; }
+			}
+			
+			var findRoleMock = Promise.resolve(testRole);
+			findRoleMock.populate = function() { return this; }
+			
+			var rolesMock = {
+				findOne: function() { return findRoleMock; }
 			}
 			
 			var roleServiceMock = {
@@ -38,12 +47,12 @@ describe("Users", function() {
 			}
 			
 			userService.__set__("users", usersMock);
+			userService.__set__("roles", rolesMock);
 			userService.__set__("roleService", roleServiceMock);		
 		});
 		
 		it("Can assign a role to a user globally", function() {
-		
-		
+			
 			return userService.assignRoleToUser({
 				id: 1
 			}, testRole.name)
@@ -68,6 +77,22 @@ describe("Users", function() {
 				should.exist(newRole);
 			})
 		});	
+		
+		it('Cannot assign a role with scope if it contains global permissions', function() {
+			
+			testRole.permissions[0].isGlobal = true;
+			
+			return userService.assignRoleToUser({
+				id: 1
+			}, testRole.name, "scope1")
+			.then(function(user) {
+				throw new Error("Failed");
+			}).catch(ServiceError, function(e) {
+				e.message.should.match(/global/i);
+			}).finally(function() {
+				testRole.permissions[0].isGlobal = false;	
+			});
+		});
 		
 		it("Can assign a role to a user mulitple times with different scopes", function() {
 			

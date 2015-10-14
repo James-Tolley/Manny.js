@@ -4,12 +4,12 @@ var
 	_ = require('lodash'),
 	crypto = require('crypto'),
 	config = require('config'),
-	roleService = require('./roles'),
 	ServiceError = require('./ServiceError');
 	
 
 var users = orm.collections.user,
-	userRoles = orm.collections.userrole;
+	userRoles = orm.collections.userrole,
+	roles = orm.collections.role;
 
 /**
  * User management
@@ -162,18 +162,25 @@ var service = {
 	 * 
 	 * @throws {ServiceError} User does not exist
 	 * @throws {ServiceError} Role does not exist
+	 * @throws {ServiceError} Attempt to assign global role at scope.
 	 * 
 	 * @returns User and updated roles
 	 */
 	assignRoleToUser: function(userId, roleId, scope) {
 		
-		var userLoad = users.findOne({id: userId}).populate('roles');
-		var roleLoad = roleService.loadRole(roleId);
+		var userLoad = users.findOne(userId).populate('roles');
+		var roleLoad = roles.findOne(roleId).populate('permissions');
 		
 		return Promise.all([userLoad, roleLoad])
 		.spread(function(user, role) {
 			if (!user) { throw new ServiceError("User does not exist"); }
 			if (!role) { throw new ServiceError("Role does not exist"); }
+			
+			
+			var globalRole = _.find(role.permissions, {isGlobal: true});
+			if (globalRole && scope) {
+				throw new ServiceError("Role contains global permissions and cannot be assigned with limited scope");
+			}
 			
 			var existing = _.find(user.roles, function(userRole) {
 				userRole.role === role.id;
@@ -208,13 +215,13 @@ var service = {
 	removeRoleFromUser: function(userId, roleId, scope) {
 		
 		var userLoad = users.findOne({id: userId}).populate('roles');
-		var roleLoad = roleService.loadRole(roleId);
+		var roleLoad = roles.findOne(roleId);
 				
 		return Promise.all([userLoad, roleLoad])
 		.spread(function(user, role) {
 			if (!user) { throw new ServiceError("User does not exist"); }
 			if (!role) { throw new ServiceError("Role does not exist"); }
-						
+			
 			var removed = _.remove(user.roles, function(userRole) {
 				return userRole.role === role.id 
 					&& (userRole.scope || "") == (scope || "");
