@@ -5,46 +5,62 @@ var should = require('should'),
 	url = server.host,
 	apiRoot = server.options.root;
 
-
-function login(username, password) {
-	return new Promise(function(resolve, reject) {
-		request(url)
-		.post(apiRoot + '/token')
-		.auth(username, password)
-		.end(function(err, res) {
-			err ? reject(err) : resolve(res.body.access_token);
-		});
-	});
-}
-
 /*global describe, before, beforeEach, it*/
 describe('User management', function() {
-	
-	describe('If I have permission', function() {
-	
-		var accessToken,
-			links = {};
-		
-		before(function() {
-			var admin = require('./setup.json').admin;
 
-			return login(admin.email, admin.password).then(function(token) {
-				accessToken = token;
-			})
-		})
-				
-		it('Should tell me where to find users management api', function(done) {
+	var links = {};
+
+	before(function(done) {
+		// Get Api Root info
+		request(url)
+		.get(apiRoot)
+		.end(function(err, res) {
+			if (err) { throw err; }
+			links = res.body._links;
+			done();
+		});		
+	})
+		
+	function login(username, password) {
+		return new Promise(function(resolve, reject) {
 			request(url)
-			.get(apiRoot)
-			.set('Authorization', 'JWT ' + accessToken)
+			.post(links.login.href)
+			.auth(username, password)
 			.end(function(err, res) {
-				if (err) { throw err; }
 				
-				res.body._links.should.have.property('users');
-				links.users = res.body._links.users;
-				done();
+				if (err) { reject(err); }
+				else {
+					links.me = res.body._links.self;
+					resolve(res.body.access_token);
+				}
 			});
 		});
+	}
+		
+	describe('If I have permission', function() {
+	
+		var accessToken;
+		
+		before(function(done) {
+			var admin = require('./setup.json').admin;
+
+			login(admin.email, admin.password).then(function(token) {
+				accessToken = token;
+				
+				request(url)
+				.get(apiRoot)
+				.set('Authorization', 'JWT ' + accessToken)
+				.expect(200)
+				.end(function(err, res) {
+					if (err) { throw err}
+					else {
+						links.users = res.body._links.users;
+						links.roles = res.body._links.roles;
+						done();
+					}
+				});
+			})
+		})
 		
 		it('Should let me see all users', function(done) {
 			request(url)
@@ -94,27 +110,20 @@ describe('User management', function() {
 				
 				before(function(done) {
 					
-					//create a role we can use
+					//create a role we can use		
+					var newRole = {
+						name: 'role_' + Date.now()
+					}
+					
 					request(url)
-					.get(apiRoot)
+					.post(links.roles.href)
+					.send(newRole)
 					.set('Authorization', 'JWT ' + accessToken)
+					.expect(200)
 					.end(function(err, res) {
 						if (err) { throw err; }
-						
-						var newRole = {
-							name: 'role_' + Date.now()
-						}
-						
-						request(url)
-						.post(res.body._links.roles.href)
-						.send(newRole)
-						.set('Authorization', 'JWT ' + accessToken)
-						.expect(200)
-						.end(function(err, res) {
-							if (err) { throw err; }
-							testRole = res.body;
-							done();
-						});
+						testRole = res.body;
+						done();
 					});
 					
 				});
@@ -145,7 +154,7 @@ describe('User management', function() {
 					.end(function(err, res) {
 						done();
 					});					
-				})
+				});
 				
 			});
 		});
