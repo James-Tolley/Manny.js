@@ -48,8 +48,11 @@ Default Configuration file is in `/config/default.json`
 {
     // application server configuration
     "server": {
-        "port": 1337 // http port app should listen on
-        "root": "" // root url for api controllers. Do not use trailing slashes. Leave blank or path with leading slash only "/path/api"
+        "port": 1337,       // http port app should listen on
+        "root": "",         // root url for api controllers. Do not use trailing slashes. Leave blank or path with leading slash only "/path/api"
+        "useHttps": true,   // Enable https
+        "key" : "cert/key.pem", // TLS Key
+        "cert" : "cert/cert.pem" // TLS Certificate  
     },
 
     // ORM configuration
@@ -82,6 +85,12 @@ Default Configuration file is in `/config/default.json`
     }
 }
 ```
+
+## Https ##
+
+Enable https in the configuration file by setting useHttps to true and setting the key and cert paths accordingly.
+
+## Initial Setup ##
 
 If the application has never been run before, it requires an admin account to be specified before it will boot. 
 This can either be specified via answering the command line prompts, or provided via a json file like so:

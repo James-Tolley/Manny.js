@@ -1,7 +1,10 @@
 {
 	"server": {
+		"root": "/api",
 		"port": 1337,
-		"root": "/api" 
+		"useHttps": false,
+		"key": "cert/key.pem",
+		"cert": "cert/cert.pem"
 	},
 	"orm": {
 		"waterline": {

@@ -9,26 +9,56 @@ orm.initialize()
 	throw e;
 });
 
+function getHost(options) {
+	var protocol = options.useHttps ? 'https' : 'http';
+	var defaultPort = options.useHttps ? 443 : 80;
+	
+	var port = options.port == defaultPort ? '' : ':' + options.port;
+	
+	return [protocol, '://localhost', port].join('');				
+}
+
+function createServer(app, options) {
+	
+	var port = options.port || (options.useHttps ? 443 : 80);
+	
+	if (options.useHttps) {
+		var fs = require('fs'),
+			https = require('https');
+			
+		var httpsOptions = {
+			key: fs.readFileSync(options.key),
+			cert: fs.readFileSync(options.cert)
+		};
+		
+		https.createServer(httpsOptions, app).listen(port);
+	} else {
+		app.listen(port);
+	}
+	
+	console.log('Api available at ' + getHost(options) + options.root);
+}
+
 function boot() {
 	
 	var 
+		config = require('config'),
 		express = require('express'),
 		bodyParser = require('body-parser'),
-		config = require('config'),
 		passport = require('passport'),
 		app = express();
+	
+	var options = config.get('server');
 	
 	app.use(bodyParser.urlencoded({extended: true}));
 	app.use(bodyParser.json());	
 	app.use(passport.initialize());
-	
-	var apiRoot = config.get('server.root');
-	require('./routes')(app, apiRoot);
-	
-	var port = config.get('server.port');
-	app.listen(port);
+		
+	require('./routes')(app, options.root);
+
 	console.log('Using configuration: ' + app.settings.env);
-	console.log('Api available at localhost:' + port + apiRoot);	
+	
+	createServer(app, options);
 }
 
 

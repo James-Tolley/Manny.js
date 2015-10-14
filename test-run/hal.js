@@ -1,8 +1,8 @@
 var should = require('should'),
 	request = require('supertest'),
-	config = require('config'),
-	url = 'localhost:' + config.get('server.port'),
-	apiRoot = config.get('server.root');
+	server = require('./lib/server'),
+	url = server.host,
+	apiRoot = server.options.root;
 
 /*global describe, before, it*/
 describe('Hypermedia', function() {
