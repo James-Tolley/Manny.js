@@ -8,6 +8,72 @@ var should = require('should'),
 /*global describe, before, it*/
 describe('Role management', function() {
 	
+	describe('Finding', function() {
+	
+		it('Can list all roles', function() {
+			
+			var data = [{id:1}, {id:2}];
+			
+			var repo = {
+				find: function(){ return Promise.resolve(data); }
+			}
+			service.__set__('roles', repo);
+			return service.roles().then(function(roles) {
+				roles.length.should.equal(data.length);
+			});
+			
+		});
+		
+		describe('Finding a role', function() {
+		
+			it('Can find a role by name', function() {
+				var repo = {
+					findOne: function() { return Promise.resolve({id: 1});}
+				}
+				service.__set__('roles', repo);
+				return service.findRole('test').then(function(role) {
+					should.exist(role);
+				});
+			});
+			
+			it('Returns null if no role found', function() {
+				var repo = {
+					findOne: function() { return Promise.resolve(null);}
+				}
+				service.__set__('roles', repo);
+				return service.findRole('test').then(function(role) {
+					should.not.exist(role);
+				});				
+			});
+			
+		})
+		
+		describe('Loading a role', function() {
+			it('Can load a role by Id', function() {
+				var repo = {
+					findOne: function() { return Promise.resolve({id: 1});}
+				}
+				service.__set__('roles', repo);
+				return service.loadRole(1).then(function(role) {
+					should.exist(role);
+				});				
+			});
+			
+			it('Throws an error if role does not exist', function() {
+				var repo = {
+					findOne: function() { return Promise.resolve(null);}
+				}
+				service.__set__('roles', repo);
+				return service.loadRole(1).then(function(role) {
+					throw new Error("Failed");
+				}).catch(ServiceError, function(e) {
+					e.message.should.match(/not exist/i);
+				})
+			});
+		});
+		 
+	})
+	
 	describe('Role creation', function() {
 		
 		it('Requires a role name', function() {
@@ -148,11 +214,31 @@ describe('Permission management', function() {
 		return service.permissions().then(function(permissions) {
 			permissions.length.should.equal(3);
 		});
+	});
+	
+	describe('Finding', function() {
+		it('Can find by name', function() {
+			var permissions = {
+				findOne: function() { return Promise.resolve({id: 1}); }
+			}
+			service.__set__('permissions', permissions);
+			return service.findPermission('test').then(function(permission) {
+				should.exist(permission);
+			});
+		});
+		
+		it('Returns null if not found', function() {
+			var permissions = {
+				findOne: function() { return Promise.resolve(null); }
+			}
+			service.__set__('permissions', permissions);
+			return service.findPermission('test').then(function(permission) {
+				should.not.exist(permission);
+			});			
+		});
 	})
 	
 	it('Can grant a permission to a role', function() {
-		
-
 		var permissionMock = {
 			findOne : sinon.stub().returns(Promise.resolve({id: 1, name: 'permission one'}))
 		};

@@ -38,9 +38,15 @@ var service = {
 	 * 
 	 * @param {number} id Role id
 	 * @returns Promise which resolves with the found Role, or null if it does not exist
+	 * @throws {ServiceError} Role id does nto exist
 	 */
 	loadRole: function(id) {
-		return roles.findOne({id: id});
+		return roles.findOne({id: id}).then(function(role) {
+			if (!role) {
+				throw new ServiceError("Role does not exist");
+			}
+			return role;
+		})
 	},
 		
 	/**
@@ -67,9 +73,6 @@ var service = {
 			return service.loadRole(id);			
 
 		}).then(function(role) {
-			if (!role) { 
-				throw new ServiceError("Role does not exist"); 
-			}
 			role.name = model.name || role.name;
 			return role.save();
 		})
