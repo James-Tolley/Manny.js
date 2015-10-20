@@ -1,13 +1,13 @@
-# Skynet #
+# Manny.js #
 
-Sample application for possible blossoming into the eventual Curious Pastimes plot management app.
+Skeleton REST Api with HATEOAS support and JWT Access.
 
 Application provides login via username and password which it exchanges for a Json Web Token (jwt). The Api functions all require a valid JWT for access.
 
 ## Install ##
 
 ```
-> git clone https://JamesTolley@bitbucket.org/JamesTolley/skynet.git
+> git clone https://JamesTolley@bitbucket.org/JamesTolley/manny.js.git
 > npm install
 > npm start
 ```
@@ -75,7 +75,7 @@ Default Configuration file is in `/config/default.json`
         // JSON Web Token configuration
         "jwt": {
             "secretOrKey": "my-secret-key", 
-            "issuer": "skynet.example.com", 
+            "issuer": "issuer.example.com", 
             "expiresIn": 3600
         },
         // User password configuration
@@ -117,7 +117,7 @@ The format of the file is
 
 All dependencies are in package.json and can be installed with `npm install`
 
-Skynet depends on the following packages:
+Manny depends on the following packages:
  - [express](http://expressjs.com/)
  - [body-parser](https://github.com/expressjs/body-parser)
  - [config](https://github.com/lorenwest/node-config)
