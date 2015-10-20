@@ -4,7 +4,7 @@ var
 	_ = require('lodash'),
 	crypto = require('crypto'),
 	config = require('config'),
-	ServiceError = require('./ServiceError');
+	errors = require('./errors');
 	
 
 var users = orm.collections.user,
@@ -104,18 +104,18 @@ var service = {
 	validateNewUserModel: function(model) {
 
 		var emailError = service.checkEmail(model.email);
-		if (emailError) { return Promise.reject(new ServiceError(emailError)); }
+		if (emailError) { return Promise.reject(new errors.ServiceError(emailError)); }
 
 		var passwordError = service.checkPassword(model.password);
-		if (passwordError) { return Promise.reject(new ServiceError(passwordError)); }
+		if (passwordError) { return Promise.reject(new errors.ServiceError(passwordError)); }
 		
-		if (!model.confirmPassword) { return Promise.reject(new ServiceError("Password confirmation is required")); }
-		if (model.password !== model.confirmPassword) { return Promise.reject(new ServiceError("Passwords do not match")); }
+		if (!model.confirmPassword) { return Promise.reject(new errors.ServiceError("Password confirmation is required")); }
+		if (model.password !== model.confirmPassword) { return Promise.reject(new errors.ServiceError("Passwords do not match")); }
 		
 		 		
 		return users.findOne({email: model.email})
 		.then(function(user) {
-			if (user) { throw new ServiceError("Email address is already in use");	}
+			if (user) { throw new errors.ServiceError("Email address is already in use");	}
 		});
 
 	},
@@ -160,8 +160,8 @@ var service = {
 	 * @param {number} roleId Id of role to assign
 	 * @param {string} scope if set, limit role to this scope. 
 	 * 
-	 * @throws {ServiceError} User does not exist
-	 * @throws {ServiceError} Role does not exist
+	 * @throws {NotFoundError} User does not exist
+	 * @throws {NotFoundError} Role does not exist
 	 * @throws {ServiceError} Attempt to assign global role at scope.
 	 * 
 	 * @returns User and updated roles
@@ -173,13 +173,13 @@ var service = {
 		
 		return Promise.all([userLoad, roleLoad])
 		.spread(function(user, role) {
-			if (!user) { throw new ServiceError("User does not exist"); }
-			if (!role) { throw new ServiceError("Role does not exist"); }
+			if (!user) { throw new errors.NotFoundError("User does not exist"); }
+			if (!role) { throw new errors.NotFoundError("Role does not exist"); }
 			
 			
 			var globalRole = _.find(role.permissions, {isGlobal: true});
 			if (globalRole && scope) {
-				throw new ServiceError("Role contains global permissions and cannot be assigned with limited scope");
+				throw new errors.ServiceError("Role contains global permissions and cannot be assigned with limited scope");
 			}
 			
 			var existing = _.find(user.roles, function(userRole) {
@@ -219,8 +219,8 @@ var service = {
 				
 		return Promise.all([userLoad, roleLoad])
 		.spread(function(user, role) {
-			if (!user) { throw new ServiceError("User does not exist"); }
-			if (!role) { throw new ServiceError("Role does not exist"); }
+			if (!user) { throw new errors.NotFoundError("User does not exist"); }
+			if (!role) { throw new errors.NotFoundError("Role does not exist"); }
 			
 			var removed = _.remove(user.roles, function(userRole) {
 				return userRole.role === role.id 
@@ -232,7 +232,7 @@ var service = {
 				if (scope) {
 					error = error + " at scope " + scope;
 				}
-				throw new ServiceError(error);
+				throw new errors.ServiceError(error);
 			}	
 					
 			return user.save();

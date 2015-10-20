@@ -3,7 +3,7 @@ var should = require('should'),
 	sinon = require('sinon'),
 	rewire = require('rewire'),
 	Promise = require('bluebird'),
-	service = rewire('../src/services/authentication');
+	service = rewire('../../src/services/authentication');
 
 /*global describe, before, it*/
 describe('Authentication', function() {
@@ -11,7 +11,7 @@ describe('Authentication', function() {
 	
 	describe('Login', function() {
 		
-		var userService = require('../src/services/users')
+		var userService = require('../../src/services/users')
 		
 		before(function() {
 			var salt = userService.generateSalt();

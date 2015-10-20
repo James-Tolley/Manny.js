@@ -115,6 +115,18 @@ describe('Roles', function() {
 				done();
 			});			
 		});
+		
+		it('Should let me delete a role', function(done) {
+						
+			request(url)
+			.delete(testRole._links.delete.href)
+			.set('Authorization', 'JWT ' + accessToken)
+			.expect(200)
+			.end(function(err, res) {
+				if (err) { throw err; }
+				done();
+			});				
+		});
 	 });
 	
 	describe('If I do not have permission', function() {

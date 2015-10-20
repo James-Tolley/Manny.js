@@ -4,8 +4,8 @@ var should = require('should'),
 	rewire = require('rewire'),
 	_ = require('lodash'),
 	Promise = require('bluebird'),
-	ServiceError = require('../src/services/ServiceError'),
-	userService = rewire('../src/services/users');
+	errors = require('../../src/services/errors'),
+	userService = rewire('../../src/services/users');
 	
 /*global describe, beforeEach, it*/
 describe("Users", function() {
@@ -87,7 +87,7 @@ describe("Users", function() {
 			}, testRole.name, "scope1")
 			.then(function(user) {
 				throw new Error("Failed");
-			}).catch(ServiceError, function(e) {
+			}).catch(errors.ServiceError, function(e) {
 				e.message.should.match(/global/i);
 			}).finally(function() {
 				testRole.permissions[0].isGlobal = false;	

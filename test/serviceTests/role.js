@@ -2,8 +2,8 @@ var should = require('should'),
 	sinon = require('sinon'),
 	rewire = require('rewire'),
 	Promise = require('bluebird'),
-	ServiceError = require('../src/services/ServiceError'),
-	service = rewire('../src/services/roles');
+	errors = require('../../src/services/errors'),
+	service = rewire('../../src/services/roles');
 	
 /*global describe, before, it*/
 describe('Role management', function() {
@@ -66,7 +66,7 @@ describe('Role management', function() {
 				service.__set__('roles', repo);
 				return service.loadRole(1).then(function(role) {
 					throw new Error("Failed");
-				}).catch(ServiceError, function(e) {
+				}).catch(errors.ServiceError, function(e) {
 					e.message.should.match(/not exist/i);
 				})
 			});
@@ -174,8 +174,8 @@ describe('Role management', function() {
 			service.__set__("roles", roleMock);
 			return service.deleteRole(1).then(function() {
 				throw new Error("Should have failed");
-			}).catch(function(err) {
-				err.message.should.match(/not found/i);
+			}).catch(errors.NotFoundError, function(err) {
+				should.exist(err);
 			});	
 		});
 		
@@ -472,7 +472,7 @@ describe('Permission management', function() {
 		
 		return service.removePermission('role one', 'permission one').then(function() {
 			throw new Error("Failed");
-		}).catch(ServiceError, function(e) {
+		}).catch(errors.ServiceError, function(e) {
 			e.message.should.match(/does not have/i);
 		});
 	});
@@ -499,7 +499,7 @@ describe('Permission management', function() {
 		
 		return service.removePermission('role one', 'permission one').then(function() {
 			throw new Error("Failed");
-		}).catch(ServiceError, function(e) {
+		}).catch(errors.ServiceError, function(e) {
 			e.message.should.match(/does not exist/i);
 		});		
 	});
@@ -521,7 +521,7 @@ describe('Permission management', function() {
 		
 		return service.removePermission('role one', 'permission one').then(function() {
 			throw new Error("Failed");
-		}).catch(ServiceError, function(e) {
+		}).catch(errors.ServiceError, function(e) {
 			e.message.should.match(/does not exist/i);
 		});				
 	});

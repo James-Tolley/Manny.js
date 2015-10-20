@@ -3,7 +3,7 @@ var should = require('should'),
 	sinon = require('sinon'),
 	rewire = require('rewire'),
 	Promise = require('bluebird'),
-	service = rewire('../src/services/users');
+	service = rewire('../../src/services/users');
 	
 /*global describe, before, it*/
 describe('Account creation', function() {

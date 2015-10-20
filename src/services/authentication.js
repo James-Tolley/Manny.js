@@ -1,9 +1,8 @@
 var config = require('config'),
 	jwt = require('jsonwebtoken'),
 	userService = require('./users'),
-	Promise = require('bluebird'),
-	ServiceError = require('./ServiceError');
-
+	Promise = require('bluebird');
+	
 function checkPassword(user, password) {
 	var hash = userService.hashPassword(password, user.salt);
 	return hash === user.password;

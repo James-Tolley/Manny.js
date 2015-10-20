@@ -5,7 +5,7 @@ var
 	authenticate = require('../middleware/authentication'),
 	authService = require('../services/authentication'),
 	userService = require('../services/users'),
-	ServiceError = require('../services/ServiceError'),
+	errors = require('../services/errors'),
 	Controller = require('./Controller');
 
 var 
@@ -75,7 +75,7 @@ controller.register = function(req, res, next) {
 		resource.link('login', controller.getRoute(routes.login));
 	
 		return res.json(resource);
-	}).catch(ServiceError, function(e) {
+	}).catch(errors.ServiceError, function(e) {
 		return res.json(400, { error: e.message });
 	}).catch(function(e) {
 		return next(e);

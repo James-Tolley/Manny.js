@@ -6,7 +6,7 @@ var should = require('should'),
 	_ = require('lodash'),
 	mockResponse = require('./lib/mockResponse'),
 	controller = rewire('../../src/controllers/authentication'),
-	ServiceError = require('../../src/services/ServiceError');
+	errors = require('../../src/services/errors');
 	
 /*global describe, it, before*/
 describe('Authentication Controller', function() {
@@ -55,7 +55,7 @@ describe('Authentication Controller', function() {
 		it('Should return 400 on a model error', function() {
 			var userServiceMock = {
 				createUser: function(model) {
-					return Promise.reject(new ServiceError('Failure'));
+					return Promise.reject(new errors.ServiceError('Failure'));
 				}
 			},
 			req = {},

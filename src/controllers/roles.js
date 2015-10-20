@@ -8,7 +8,7 @@ var
 	authorizationService = require('../services/authorization'),
 	_ = require('lodash'),
 	Controller = require('./Controller'),
-	ServiceError = require('../services/ServiceError');
+	errors = require('../services/errors');
 
 var 
 	routes = {
@@ -89,9 +89,31 @@ controller.createRole = function(req, res, next) {
 * @apiGroup Role
 * 
 * @apiParam {number} id Role Id
+* @apiError 400 Invalid request
+* @apiError 404 Role not found
 */	
 controller.getRole = function(req, res, next) {
-	return res.json(501, req.params.id)
+	var id = parseInt(req.params.id);
+	if (!id || isNaN(id)) {
+		return res.json(400, {error: "Invalid role Id"});
+	}	
+	
+	roleService.loadRole(id).then(function(role) {
+		if (!role) { return res.json(404, "Role not found"); }
+		
+		var url = controller.getRoute(routes.role, role.id);
+		var resource = new hal.Resource(role, controller.getRoute(routes.role, role.id));
+		resource.link('delete', url);
+		resource.link('update', url);
+		
+		return res.json(200, resource);	
+	}).catch(errors.NotFoundError, function(e) {
+		return res.json(404, {error: "Role not found"});
+	}).catch(errors.ServiceError, function(e) {
+		return res.json(400, {error: e.message});
+	}).catch(function(e) {
+		next(e);
+	});
 }
 	
 /**
@@ -112,7 +134,9 @@ controller.updateRole = function(req, res, next) {
 	
 	roleService.updateRole(id, req.body).then(function(role) {
 		return res.json(role);
-	}).catch(ServiceError, function(e) {
+	}).catch(errors.NotFoundError, function(e) {
+		return res.json(404, {error: "Role not found"});		
+	}).catch(errors.ServiceError, function(e) {
 		return res.json(400, { error: e.message })
 	}).catch(function(e) {
 		next(e);
@@ -123,9 +147,26 @@ controller.updateRole = function(req, res, next) {
 * @api {delete} /roles/:id Delete a role
 * @apiName DeleteRole
 * @apiGroup Role
+*
+* @apiError 400 Invalid role id
+* @apiError 404 Role not found
 */		
 controller.deleteRole = function(req, res, next) {
-	return res.json(501, req.params.id);
+	var id = parseInt(req.params.id);
+	
+	if (!id || isNaN(id)) {
+		return res.json(400, {error: "Invalid role Id"});
+	}
+	
+	roleService.deleteRole(id).then(function() {
+		return res.json(204);
+	}).catch(errors.NotFoundError, function(e) {
+		return res.json(404, {error: "Role not found"});		
+	}).catch(errors.ServiceError, function(e) {
+		return res.json(400, { error: e.message })
+	}).catch(function(e) {
+		next(e);
+	});
 }
 	
 /**

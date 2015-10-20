@@ -6,7 +6,7 @@ var should = require('should'),
 	_ = require('lodash'),
 	mockResponse = require('./lib/mockResponse'),
 	controller = rewire('../../src/controllers/roles'),
-	ServiceError = require('../../src/services/ServiceError');
+	errors = require('../../src/services/errors');
 
 /*global describe, it, beforeEach*/	
 describe('Role Management', function() {
@@ -146,6 +146,105 @@ describe('Role Management', function() {
 			});				
 		})
 		
+	});
+	
+	describe('Individual Role', function() {
+				
+		it('Can get a role by id', function() {
+			var 
+				req = {params: {id: 1}},
+				res = mockResponse(),
+				mockService = {
+					loadRole: function(id) { return Promise.resolve({id: id}); }
+				}
+			controller.__set__('roleService', mockService);
+				
+			controller.getRole(req, res, next);
+				
+			return res.then(function(response) {
+				response.body._links.should.have.property('self');
+			});			
+		});
+		
+		it('Returns 404 if role does not exist', function() {
+			var 
+				req = {params: {id: 1}},
+				res = mockResponse(),
+				mockService = {
+					loadRole: function(id) { return Promise.reject(new errors.NotFoundError("Role not found")); }
+				}
+			controller.__set__('roleService', mockService);
+				
+			controller.getRole(req, res, next);
+				
+			return res.then(function(response) {
+				response.status.should.equal(404);
+			});				
+		});
+		
+		it('Includes an update link', function() {
+			var 
+				req = {params: {id: 1}},
+				res = mockResponse(),
+				mockService = {
+					loadRole: function(id) { return Promise.resolve({id: id}); }
+				}
+			controller.__set__('roleService', mockService);
+				
+			controller.getRole(req, res, next);
+				
+			return res.then(function(response) {
+				response.body._links.should.have.property('update');
+			});					
+		});
+		
+		it('Includes a delete link', function() {
+			var 
+				req = {params: {id: 1}},
+				res = mockResponse(),
+				mockService = {
+					loadRole: function(id) { return Promise.resolve({id: id}); }
+				}
+			controller.__set__('roleService', mockService);
+				
+			controller.getRole(req, res, next);
+				
+			return res.then(function(response) {
+				response.body._links.should.have.property('delete');
+			});					
+		});
+		
+		it('Can update a role', function() {
+			var 
+				req = {params: {id: 1}},
+				res = mockResponse(),
+				mockService = {
+					updateRole: function(model) { return Promise.resolve(model);}
+				}
+			controller.__set__('roleService', mockService);
+				
+			controller.updateRole(req, res, next);
+				
+			return res.then(function(response) {
+				response.status.should.equal(200);
+			});					
+		});
+		
+		it('Can delete a role', function() {
+			var 
+				req = {params: {id: 1}},
+				res = mockResponse(),
+				mockService = {
+					deleteRole: function() { return Promise.resolve(true); }
+				}
+			controller.__set__('roleService', mockService);
+				
+			controller.deleteRole(req, res, next);
+				
+			return res.then(function(response) {
+				response.status.should.equal(200);
+			});				
+		});
 	});
 
 	

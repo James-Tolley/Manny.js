@@ -3,7 +3,7 @@ var should = require('should'),
 	rewire = require('rewire'),
 	_ = require('lodash'),
 	Promise = require('bluebird'),
-	service = rewire('../src/services/authorization');
+	service = rewire('../../src/services/authorization');
 	
 /*global describe, it, before*/
 describe('Authorization', function() {

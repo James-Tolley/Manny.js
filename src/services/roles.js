@@ -2,7 +2,7 @@ var
 	orm = require('../collections/orm'),
 	Promise = require('bluebird'),
 	_ = require('lodash'),
-	ServiceError = require('./ServiceError');
+	errors = require('./errors');
 
 var roles = orm.collections.role,
 	permissions = orm.collections.permission;
@@ -38,15 +38,15 @@ var service = {
 	 * 
 	 * @param {number} id Role id
 	 * @returns Promise which resolves with the found Role, or null if it does not exist
-	 * @throws {ServiceError} Role id does nto exist
+	 * @throws {NotFoundError} Role id does not exist
 	 */
 	loadRole: function(id) {
 		return roles.findOne({id: id}).then(function(role) {
 			if (!role) {
-				throw new ServiceError("Role does not exist");
+				throw new errors.NotFoundError("Role does not exist");
 			}
 			return role;
-		})
+		});
 	},
 		
 	/**
@@ -57,17 +57,17 @@ var service = {
 	 * @returns Promise which will resolve with an updated role model
 	 * 
 	 * @throws {ServiceError} Name was passed but empty, or another role with that name already exists
-	 * @throws {ServiceError} Role id does not exist
+	 * @throws {NotFoundError} Role id does not exist
 	 */
 	updateRole: function(id, model) {
 		
 		if (model.hasOwnProperty('name') && !model.name) {
-			return Promise.reject(new ServiceError("Role name cannot be blank"));
+			return Promise.reject(new errors.ServiceError("Role name cannot be blank"));
 		}
 		
 		return service.findRole(model.name).then(function(r) {
 			if (r && (r.id != id)) {
-				throw new ServiceError("Role " + model.name + " already exists");
+				throw new errors.ServiceError("Role " + model.name + " already exists");
 			}
 				
 			return service.loadRole(id);			
@@ -104,25 +104,24 @@ var service = {
 	 * @throws {ServiceError} Name is blank, or already exists
 	 */
 	createRole: function(name) {
-		if (!name) { return Promise.reject(new ServiceError("Role name is required")); }
+		if (!name) { return Promise.reject(new errors.ServiceError("Role name is required")); }
 		
 		return service.findRole(name)
 		.then(function(role) {
-			if (role) { throw new ServiceError("Role " + name + " already exists") }
+			if (role) { throw new errors.ServiceError("Role " + name + " already exists") }
 			
 			return roles.create({name: name});
 		});
 	},
 	
 	/**
-	 * Delete a role by name
-	 * @param {string} Name of role to delete
-	 * @throws {ServiceError} Role not found
+	 * Delete a role by Id
+	 * @param {number} id Id of role to delete
+	 * @throws {NotFoundError} Role not found
 	 */
-	deleteRole: function(name) {
-		return service.findRole(name)
+	deleteRole: function(id) {
+		return service.loadRole(id)
 		.then(function(role) {
-			if (!role) { throw new ServiceError("Role not found")}
 			return roles.destroy({id: role.id});
 		});
 	},
@@ -133,8 +132,8 @@ var service = {
 	 * @param {String} permissionName Name of permission to grant
 	 * 
 	 * @returns Promise which resolves with updated role model
-	 * @throws {ServiceError} Role does not exist
-	 * @throws {ServiceError} Permission does not exist
+	 * @throws {NotFoundError} Role does not exist
+	 * @throws {NotFoundError} Permission does not exist
 	 * @throws {ServiceError} Role already has this permission
 	 * @throws {ServiceError} Attempted to assign a global permission to a role which already contains scopeable ones, or vice versa 
 	 */
@@ -144,17 +143,17 @@ var service = {
 			permissions.findOne({name: permissionName})
 		])
 		.spread(function(role, permission) {
-			if (!role) { throw new ServiceError("Role does not exist"); }
-			if (!permission) { throw new ServiceError("Permission does not exist"); }
+			if (!role) { throw new errors.NotFoundError("Role does not exist"); }
+			if (!permission) { throw new errors.NotFoundError("Permission does not exist"); }
 			
 			var existingPermission = _.find(role.permissions, { name: permissionName });
 			if (existingPermission) {
-				throw new ServiceError("Role already has this permission");
+				throw new errors.ServiceError("Role already has this permission");
 			}
 				
 			var scopeConflict = _.find(role.permissions, { isGlobal: !permission.isGlobal });
 			if (scopeConflict) {
-				throw new ServiceError("Cannot mix global and scopeable permissions in a single role");
+				throw new errors.ServiceError("Cannot mix global and scopeable permissions in a single role");
 			}
 			
 			role.permissions.add(permission);
@@ -168,8 +167,8 @@ var service = {
 	 * @param {string} permissioName name of permission to remove
 	 * 
 	 * @return Promise which resolves with the updated role model
-	 * @throws {ServiceError} Role does not exist
-	 * @throws {ServiceError} Permission does not exist
+	 * @throws {NotFoundError} Role does not exist
+	 * @throws {NotFoundError} Permission does not exist
 	 * @throws {ServiceError} Role does not have this permission
 	 */
 	removePermission: function(roleName, permissionName) {
@@ -178,12 +177,12 @@ var service = {
 			permissions.findOne({name: permissionName})
 		])
 		.spread(function(role, permission) {
-			if (!role) { throw new ServiceError("Role does not exist"); }
-			if (!permission) { throw new ServiceError("Permission does not exist"); }
+			if (!role) { throw new errors.NotFoundError("Role does not exist"); }
+			if (!permission) { throw new errors.NotFoundError("Permission does not exist"); }
 			
 			var existingPermission = _.find(role.permissions, { name: permissionName });
 			if (!existingPermission) {
-				throw new ServiceError("Role does not have this permission");
+				throw new errors.ServiceError("Role does not have this permission");
 			}			
 			
 			role.permissions.remove(existingPermission.id);
