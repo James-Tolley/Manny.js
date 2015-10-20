@@ -1,20 +1,20 @@
 {
-  "name": "skynet",
-  "version": "0.0.1",
+  "name": "Manny.js",
+  "version": "0.1.0",
   "main": "server.js",
   "license": "unlicensed",
   "private": true,
   "readme": "README.md",
-  "description": "Curious Pastimes Plot Management Application",
+  "description": "REST Api Skeleton Application",
   "authors": [
     "James Tolley <james@jamestolley.net> (www.jamestolley.net)"
   ],
   "repository": {
     "type": "git",
-    "url": "https://bitbucket.org/JamesTolley/skynet.git"
+    "url": "https://bitbucket.org/JamesTolley/manny,js.git"
   },
   "apidoc": {
-    "title": "Skynet Api Documentation"
+    "title": "Manny.js Api Documentation"
   },
   "dependencies": {
     "bluebird": "^2.9.34",
