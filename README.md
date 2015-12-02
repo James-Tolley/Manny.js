@@ -7,7 +7,7 @@ Application provides login via username and password which it exchanges for a Js
 ## Install ##
 
 ```
-> git clone https://JamesTolley@bitbucket.org/JamesTolley/manny.js.git
+> git clone https://github.com/James-Tolley/Manny.js.git
 > npm install
 > npm start
 ```
